@@ -1,0 +1,11 @@
+{
+    "name": "The Dove",
+    "version": "1.0.0",
+    "description": "Life Balance Helper",
+    "manifest_version": 3,
+    "author": "Arianna Mulligan",
+    "action":{
+        "default_popup": "index.html",
+        "default_title": "Settings"
+    }
+}
