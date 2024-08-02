@@ -1,18 +1,20 @@
-// async function fetchData() {
-//     const res = await fetch("https://ghoapi.azureedge.net/api/OCC_17");
-//     if (!res.ok) {
-//         console.error("Failed to fetch data");
-//         return;
-//     }
-//     const record = await res.json();
-//     document.getElementById("SpatialDim").innerHTML = record.value[0].SpatialDim;
-//     document.getElementById("Value").innerHTML = record.value[0].Value;
-// }
-// fetchData();
+document.getElementById('onOrOff').addEventListener('click', () => {
+    chrome.storage.local.get(['showDove'], (result) => {
+        const showDove = result.showDove ?? true; // Default to true if undefined
+        // setting showDove to local storage 
+        chrome.storage.local.set({ showDove: !showDove }, () => {
+            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                if (tabs.length > 0) {
+                    chrome.scripting.executeScript({
+                        target: { tabId: tabs[0].id },
+                        function: reloadPage
+                    });
+                }
+            });
+        });
+    });
+});
 
-// async function getCurrentTab() {
-//     let queryOptions = { active: true, lastFocusedWindow: true };
-//     // `tab` will either be a `tabs.Tab` instance or `undefined`.
-//     let [tab] = await chrome.tabs.query(queryOptions);
-//     return tab;
-// }
+function reloadPage() {
+    location.reload();
+}
