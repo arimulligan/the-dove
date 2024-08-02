@@ -4,8 +4,12 @@
     "description": "Life Balance Helper",
     "manifest_version": 3,
     "author": "Arianna Mulligan",
-    "action":{
+    "action": {
         "default_popup": "index.html",
         "default_title": "Settings"
-    }
+    },
+    "side_panel": {
+        "default_path": "index.html"
+    },
+    "permissions": ["sidePanel", "scripting", "activeTab"]
 }
