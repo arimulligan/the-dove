@@ -1,13 +1,9 @@
 {
     "name": "The Dove",
     "version": "1.0.0",
-    "description": "Life Balance Helper",
+    "description": "The life balance helper.",
     "manifest_version": 3,
     "author": "Arianna Mulligan",
-    "action": {
-        "default_popup": "index.html",
-        "default_title": "Settings"
-    },
     "content_scripts": [
         {
             "matches": ["<all_urls>"],
@@ -20,8 +16,18 @@
             "matches": ["<all_urls>"]
         }
     ],
-    "side_panel": {
-        "default_path": "index.html"
+    "permissions": ["storage", "scripting", "activeTab", "tabs", "webRequest", "declarativeNetRequest"],
+    "background": {
+        "service_worker": "background.js"
     },
-    "permissions": ["storage", "scripting", "activeTab", "tabs"]
+    "options_page": "options.html",
+    "action": {
+        "default_popup": "popup.html",
+        "default_title": "Settings",
+        "default_icon": {
+            "16": "icons/doveLogo16.png",
+            "48": "icons/doveLogo48.png",
+            "128": "icons/doveLogo128.png"
+        }
+    }
 }
