@@ -1,2 +1,2 @@
 # the-dove
-A chrome extension which helps with learning bible verses. Floats down every hour and chats to you. Can play simple games as a brain break. 
+A Chrome plugin that helps you create peaceful breaks between productive study sessions. Flys down and chats to you. If time permits: when you are resting, you can play simple games with the dove.
