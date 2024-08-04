@@ -15,17 +15,23 @@ chrome.runtime.onInstalled.addListener(() => {
     });
   
     chrome.storage.onChanged.addListener(function(changes, area) {
-      if (area === "sync" && changes.blockedUrl?.newValue) {
-        const newUrl = changes.blockedUrl.newValue;
-        chrome.declarativeNetRequest.updateDynamicRules({
-          removeRuleIds: [1],
-          addRules: [{
-            id: 1,
-            priority: 1,
-            action: { type: "block" },
-            condition: { urlFilter: newUrl, resourceTypes: ["main_frame"] }
-          }]
-        });
+      if (area === "sync") {
+        if (changes.blockedUrl?.newValue) {
+          const newUrl = changes.blockedUrl.newValue;
+          chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: [1],
+            addRules: [{
+              id: 1,
+              priority: 1,
+              action: { type: "block" },
+              condition: { urlFilter: newUrl, resourceTypes: ["main_frame"] }
+            }]
+          });
+        } else if (changes.blockedUrl?.oldValue && !changes.blockedUrl.newValue) {
+          chrome.declarativeNetRequest.updateDynamicRules({
+            removeRuleIds: [1]
+          });
+        }
       }
     });
   });
