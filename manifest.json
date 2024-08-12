@@ -12,7 +12,7 @@
     ],
     "web_accessible_resources": [
         {
-            "resources": ["images/flyingDove.gif"],
+            "resources": ["images/flyingDove.gif", "images/standingBird.png", "images/bigBranch.png"],
             "matches": ["<all_urls>"]
         }
     ],
