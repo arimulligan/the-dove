@@ -7,17 +7,19 @@
         <link rel="stylesheet" href="popupStyles.css">
     </head>
     <body>
-        <div class="container mt-3" style="width: 450px;">
-            <h2 class="text-center">Turn off flying dove?</h2>
-            <button id="onOrOff">On/Off</button>
-        </div>
-        <div class="container">
-            <h1>To-Do List</h1>
-            <div>
-                <input type="text" id="taskInput" placeholder="Add a new task...">
-                <button id="addTaskButton">Add</button>
+        <div class="flex-container">
+            <div style="width: 450px; order:1">
+                <h2 class="text-center">Turn off flying dove?</h2>
+                <button id="onOrOff">On/Off</button>
             </div>
-            <ul id="taskList"></ul>
+            <div style="order: 2">
+                <h1>To-Do List</h1>
+                <div>
+                    <input type="text" id="taskInput" placeholder="Add a new task...">
+                    <button id="addTaskButton">Add</button>
+                </div>
+                <ul id="taskList"></ul>
+            </div>
         </div>
         <!-- This is in the last milestone -->
         <!-- <h1>URL Blocker</h1>
