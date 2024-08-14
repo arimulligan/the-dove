@@ -24,7 +24,7 @@ h1 {
 }
 
 input[type="text"] {
-    width: calc(100% - 42px);
+    width: calc(80% - 42px);
     padding: 10px;
     border: 2px solid #dcdcdc;
     border-radius: 5px;
@@ -34,6 +34,7 @@ input[type="text"] {
 button {
     padding: 10px 15px;
     margin-left: 10px;
+    margin-top: 10px;
     border: none;
     background-color: #5cb85c;
     color: #fff;

@@ -24,11 +24,13 @@ document.getElementById('addTaskButton').addEventListener('click', addTask);
 function addTask() {
     const taskInput = document.getElementById('taskInput');
     const taskList = document.getElementById('taskList');
+    const taskNum = document.querySelectorAll('li').length;
 
     if (taskInput.value.trim() !== '') {
         const listItem = document.createElement('li');
 
         const taskSpan = document.createElement('span');
+        taskSpan.setAttribute('id', "newTask" + taskNum);
         taskSpan.textContent = taskInput.value;
         listItem.appendChild(taskSpan);
 
@@ -37,8 +39,24 @@ function addTask() {
         deleteButton.onclick = () => taskList.removeChild(listItem);
         listItem.appendChild(deleteButton);
 
+        const editButton = document.createElement('button');
+        editButton.textContent = 'Edit';
+        editButton.addEventListener('click', () => editTask(taskSpan, editButton));
+        listItem.appendChild(editButton);
+
         taskList.appendChild(listItem);
 
         taskInput.value = '';
+    }
+}
+
+function editTask(taskSpan, editButton) {
+    if (!taskSpan.isContentEditable) {
+        taskSpan.contentEditable = true;
+        taskSpan.focus();
+        editButton.textContent = 'Done';
+    } else {
+        taskSpan.contentEditable = false;
+        editButton.textContent = 'Edit';
     }
 }
