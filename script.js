@@ -1,23 +1,23 @@
-document.getElementById('onOrOff').addEventListener('click', () => {
-    chrome.storage.local.get(['showDove'], (result) => {
-        const showDove = result.showDove ?? false; // Default to true if undefined
-        // setting showDove to local storage 
-        chrome.storage.local.set({ showDove: !showDove }, () => {
-            chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                if (tabs.length > 0) {
-                    chrome.scripting.executeScript({
-                        target: { tabId: tabs[0].id },
-                        function: reloadPage
-                    });
-                }
-            });
-        });
-    });
-});
+// document.getElementById('onOrOff').addEventListener('click', () => {
+//     chrome.storage.local.get(['showDove'], (result) => {
+//         const showDove = result.showDove ?? false; // Default to true if undefined
+//         // setting showDove to local storage 
+//         chrome.storage.local.set({ showDove: !showDove }, () => {
+//             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+//                 if (tabs.length > 0) {
+//                     chrome.scripting.executeScript({
+//                         target: { tabId: tabs[0].id },
+//                         function: reloadPage
+//                     });
+//                 }
+//             });
+//         });
+//     });
+// });
 
-function reloadPage() {
-    location.reload();
-}
+// function reloadPage() {
+//     location.reload();
+// }
 
 document.addEventListener('DOMContentLoaded', loadTasks);
 document.getElementById('addTaskButton').addEventListener('click', addTask);

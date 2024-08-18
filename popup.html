@@ -8,19 +8,29 @@
     </head>
     <body>
         <div class="flex-container">
-            <h1>The Do<span class="v-container"></span>_e <button class="settings-cog"></button></h1>
-            <div style="width: 450px; order:1">
+            <h1>The Do<span class="v-container"></span>e <button class="settings-cog"></button></h1>
+            <div class="bg-container">
+                <div>
+                    <h2>My Goals</h2>
+                    <div>
+                        <input type="text" id="taskInput" placeholder="Add a new task..." style="display: inline-block;">
+                        <button id="addTaskButton" style="display: inline-block;">Add</button>
+                    </div>
+                    <ul id="taskList"></ul>
+                </div>
+            </div>
+            <div class="boxes">
+                <div class="unselected-box"></div>
+                <div class="selected-box"></div>
+                <div class="unselected-box"></div>
+            </div>
+            
+            
+            <!-- <div style="width: 450px; order:2">
                 <h2 class="text-center">Turn off flying dove?</h2>
                 <button id="onOrOff">On/Off</button>
-            </div>
-            <div style="order: 2">
-                <h1>To-Do List</h1>
-                <div>
-                    <input type="text" id="taskInput" placeholder="Add a new task..." style="display: inline-block;">
-                    <button id="addTaskButton" style="display: inline-block;">Add</button>
-                </div>
-                <ul id="taskList"></ul>
-            </div>
+            </div> this will be in settings. -->
+
         </div>
         <!-- This is in the last milestone -->
         <!-- <h1>URL Blocker</h1>

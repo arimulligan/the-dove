@@ -3,47 +3,54 @@
     background-color: #0388A6;
 }
 
-body {
+.flex-container {
+    width: 400px;
+    height: 600px;
+    align-items: center;
     display: flex;
     justify-content: center;
-    align-items: center;
-    height: 100vh;
-    margin: 0;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    background-color: #0388A6;
 }
 
-.container {
-    width: 400px;
-    border-radius: 10px;
-    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
-    padding: 20px;
+.flex-container > * {
+    /* outline: 2px solid red; Apply to children - debugging */
 }
 
 h1 {
     font-family: Arial Black;
     font-size: 40px;
-    margin: 20px;
     color: #04668C;
     text-align: left;
     position: relative;
 }
 
+h2 {
+    font-family: Arial Black;
+    font-size: 25px;
+    color: #F2A007;
+    text-align: center;
+    position: relative;
+    background-color: #04668C;
+}
+
 .v-container::after {
     content: "";
-    position: fixed;
-    top: 25px;
-    left: 35%;
-    width: 60px;
-    height: 60px;
+    position: static;
+    width: 40px;
+    height: 40px;
     background-image: url('images/doveWordmark.png');
     background-size: contain;
     background-repeat: no-repeat;
     display: inline-block;
-    vertical-align: middle;
+    vertical-align: text-bottom;
 }
 
 .settings-cog {
     position: relative;
-    left: 35%;
+    left: 15%;
     top: -10px;
     width: 30px;
     height: 30px;
@@ -56,12 +63,13 @@ h1 {
     background-color: #0388A6; /* Change background color on hover */
 }
 
-input[type="text"] {
-    width: calc(80% - 42px);
+input[type="text"], input[type="text"]:hover {
+    width: 60%;
     padding: 10px;
-    border: 2px solid #dcdcdc;
-    border-radius: 5px;
+    border:none;
+    /* border-radius: 5px; */
     font-size: 16px;
+    background-color: inherit;
 }
 
 button {
@@ -69,8 +77,8 @@ button {
     margin-left: 10px;
     margin-top: 10px;
     border: none;
-    background-color: #04668C;
-    color: #fff;
+    color: #8C5C4A;
+    background-color: #F28705;
     font-size: 16px;
     cursor: pointer;
     border-radius: 5px;
@@ -78,7 +86,8 @@ button {
 }
 
 button:hover {
-    background-color: #F28705;
+    background-color: #8C5C4A;
+    color: #F28705;
 }
 
 ul {
@@ -111,5 +120,39 @@ ul li button {
 }
 
 ul li button:hover {
-    background-color: #c9302c;
+    background-color: #8C5C4A;
+}
+
+.bg-container {
+    background-color: #04668C;
+    width: 97%;
+    height: 80%;
+    gap: 10px;
+    padding: 10px;
+}
+
+.boxes {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+}
+
+.unselected-box, .selected-box {
+    width: 30%;
+    height: 50px;
+    background-color: #0388A6;
+    border: #04668C solid 5px;
+}
+
+.selected-box {
+    height: 65px;
+    width: 32%;
+    background-color: #04668C;
+}
+
+div, ul, li { background-color: inherit; }
+
+::placeholder {
+    color: #F2A007;
 }
