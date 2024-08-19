@@ -1,8 +1,12 @@
+/* General Styles */
 * {
     font-family: Arial;
     background-color: #0388A6;
+    color: inherit;
+    background-color: inherit;
 }
 
+/* Flex Container */
 .flex-container {
     width: 400px;
     height: 600px;
@@ -15,11 +19,8 @@
     background-color: #0388A6;
 }
 
-.flex-container > * {
-    /* outline: 2px solid red; Apply to children - debugging */
-}
-
-h1 {
+/* Header Styling */
+h1, h2 {
     font-family: Arial Black;
     font-size: 40px;
     color: #04668C;
@@ -27,15 +28,22 @@ h1 {
     position: relative;
 }
 
-h2 {
-    font-family: Arial Black;
+h2, h3 {
     font-size: 25px;
     color: #F2A007;
     text-align: center;
-    position: relative;
     background-color: #04668C;
 }
 
+h3 {
+    font-family: Arial;
+    font-style:oblique;
+    font-weight: lighter;
+    text-align: right;
+    padding: 5px;
+}
+
+/* Dove Icon */
 .v-container::after {
     content: "";
     position: static;
@@ -48,6 +56,7 @@ h2 {
     vertical-align: text-bottom;
 }
 
+/* Settings Cog */
 .settings-cog {
     position: relative;
     left: 15%;
@@ -59,17 +68,15 @@ h2 {
     border: none;
     background-color: #0388A6;
 }
+
 .settings-cog:hover {
-    background-color: #0388A6; /* Change background color on hover */
+    background-color: #0388A6;
 }
 
+/* Input and Button Styling */
 input[type="text"], input[type="text"]:hover {
     width: 60%;
-    padding: 10px;
-    border:none;
-    /* border-radius: 5px; */
-    font-size: 16px;
-    background-color: inherit;
+    border: none;
 }
 
 button {
@@ -90,47 +97,43 @@ button:hover {
     color: #F28705;
 }
 
+/* Task List */
 ul {
     list-style-type: none;
     padding: 0;
-    margin-top: 20px;
 }
 
-ul li {
+li {
     padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
+    margin: 5px;
+    cursor: grab;
     display: flex;
-    justify-content: space-between;
+    justify-content: right;
+    flex-direction: row;
+    gap: 5px;
     align-items: center;
 }
 
-ul li span {
-    font-size: 16px;
-}
-
+/* Task List Button Styling */
 ul li button {
-    padding: 5px 10px;
-    margin-left: 10px;
     background-color: #d9534f;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
 }
 
 ul li button:hover {
     background-color: #8C5C4A;
 }
 
+/* Dark Blue Background */
 .bg-container {
     background-color: #04668C;
     width: 97%;
     height: 80%;
     gap: 10px;
     padding: 10px;
+    overflow-y: auto;
 }
 
+/* Nav-Bar Buttons */
 .boxes {
     display: flex;
     justify-content: space-around;
@@ -151,8 +154,12 @@ ul li button:hover {
     background-color: #04668C;
 }
 
-div, ul, li { background-color: inherit; }
+/* Global Styles */
+div, ul, li {
+    background-color: inherit;
+}
 
+/* Placeholder Styling */
 ::placeholder {
     color: #F2A007;
 }
