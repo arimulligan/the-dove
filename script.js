@@ -27,25 +27,24 @@ makeTaskDraggable(document.getElementById('taskList'), null);
 
 function addTask(section) {
     const taskInput = document.getElementById(`taskInput${section}`);
-    const tasks = getTasksFromStorage();
+    const taskList = getTasksFromStorage();
 
     if (taskInput.value.trim() !== '') {
         const task = {
-            id: `task${tasks.length}`,
-            content: taskInput.value,
-            section: section
+            id: `task${taskList[section].length}`,
+            content: taskInput.value
         };
 
-        tasks.push(task);
-        saveTasksToStorage(tasks);
+        taskList[section].push(task);
+        saveTasksToStorage(taskList);
 
-        addTaskToDOM(task);
+        addTaskToDOM(section, task);
         taskInput.value = '';
     }
 }
 
-function addTaskToDOM(task) {
-    const taskList = document.getElementById('taskList');
+function addTaskToDOM(section, task) {
+    const taskList = document.querySelector(`#taskList #h3${section}`).parentNode;
 
     const listItem = document.createElement('li');
     listItem.draggable = true;
@@ -60,22 +59,22 @@ function addTaskToDOM(task) {
     const deleteButton = document.createElement('button');
     deleteButton.textContent = 'Delete';
     deleteButton.onclick = () => {
-        deleteTask(task.id);
+        deleteTask(section, task.id);
         taskList.removeChild(listItem);
     };
     listItem.appendChild(deleteButton);
 
     const editButton = document.createElement('button');
     editButton.textContent = 'Edit';
-    editButton.addEventListener('click', () => editTask(taskSpan, editButton));
+    editButton.addEventListener('click', () => editTask(section, taskSpan, editButton));
     listItem.appendChild(editButton);
 
-    taskList.appendChild(listItem);
+    taskList.parentNode.insertBefore(listItem, taskList.nextSibling);
 }
 
-function editTask(taskSpan, editButton) {
-    const tasks = getTasksFromStorage();
-    const task = tasks.find(t => t.id === taskSpan.id);
+function editTask(section, taskSpan, editButton) {
+    const taskList = getTasksFromStorage();
+    const task = taskList[section].find(t => t.id === taskSpan.id);
     if (task !== undefined){
         if (!taskSpan.isContentEditable) {
             taskSpan.contentEditable = true;
@@ -84,41 +83,42 @@ function editTask(taskSpan, editButton) {
         } else {
             taskSpan.contentEditable = false;
             task.content = taskSpan.textContent;
-            saveTasksToStorage(tasks);
+            saveTasksToStorage(taskList);
             editButton.textContent = 'Edit';
         }
     }
 }
 
-function deleteTask(taskId) {
-    const tasks = getTasksFromStorage().filter(task => task.id !== taskId);
-    saveTasksToStorage(tasks);
+function deleteTask(section, taskId) {
+    const taskList = getTasksFromStorage();
+    taskList[section] = taskList[section].filter(task => task.id !== taskId);
+    saveTasksToStorage(taskList);
 }
 
 function getTasksFromStorage() {
     const tasks = localStorage.getItem('tasks');
-    // TODO: the tasks.JSON is making this all faulty, need to fix... don't know how to!
-    /**
-     * My solution in such cases is to parse the complex object into a simple
-     * one containing only the properties you need in the formatting of your
-     *  choosing.
-     * https://stackoverflow.com/questions/73455972/undefined-is-not-valid-json
-     */
-    if (tasks === null || tasks === undefined || tasks === '' || tasks.JSON == undefined) {
-        console.error(tasks);
-        return [];
+    if (!tasks || tasks == '' || tasks == 'undefined') {
+        return {
+            NotDone: [],
+            Doing: [],
+            Done: []
+        };
     }
     return JSON.parse(tasks);
 }
 
-function saveTasksToStorage(tasks) {
-    localStorage.setItem('tasks', JSON.stringify(tasks));
+function saveTasksToStorage(taskList) {
+    localStorage.setItem('tasks', JSON.stringify(taskList));
 }
 
 function loadTasks() {
     const tasks = getTasksFromStorage();
-    tasks.forEach(addTaskToDOM);
-}
+    // Iterate over each section in the tasks object
+    Object.keys(tasks).forEach(section => {
+        tasks[section].forEach(task => {
+            addTaskToDOM(section, task);
+        });
+    });}
 
 /**
  * Inspiration from geeksforgeeks.org
