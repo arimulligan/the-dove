@@ -51,15 +51,18 @@ function addTaskToDOM(section, task) {
     const listItem = document.createElement('li');
     listItem.draggable = true;
     const taskSpan = document.createElement('span');
-    taskSpan.setAttribute('id', task.id);
+    taskSpan.id = task.id;
     taskSpan.textContent = task.content;
     taskSpan.addEventListener('dragstart', (e) => {
         e.preventDefault(); // make text not draggable (bug fix)
     });
+    taskSpan.addEventListener('click', () => editTask(section, taskSpan));
     listItem.appendChild(taskSpan);
 
     const deleteButton = document.createElement('button');
     deleteButton.textContent = 'Delete';
+    deleteButton.style.backgroundImage = 'url(images/trashClosed)';
+    deleteButton.style.backgroundRepeat = 'none';
     deleteButton.onclick = () => {
         deleteTask(section, task.id);
         taskList.parentNode.removeChild(listItem);
@@ -68,25 +71,22 @@ function addTaskToDOM(section, task) {
 
     const editButton = document.createElement('button');
     editButton.textContent = 'Edit';
-    editButton.addEventListener('click', () => editTask(section, taskSpan, editButton));
+    editButton.addEventListener('click', () => editTask(section, taskSpan));
     listItem.appendChild(editButton);
 
     taskList.parentNode.insertBefore(listItem, taskList.nextSibling);
 }
 
-function editTask(section, taskSpan, editButton) {
+function editTask(section, taskSpan) {
     const taskList = getTasksFromStorage();
     const task = taskList[section].find(t => t.id === taskSpan.id);
     if (task !== undefined){
         if (!taskSpan.isContentEditable) {
             taskSpan.contentEditable = true;
             taskSpan.focus();
-            editButton.textContent = 'Done';
         } else {
-            taskSpan.contentEditable = false;
             task.content = taskSpan.textContent;
             saveTasksToStorage(taskList);
-            editButton.textContent = 'Edit';
         }
     }
 }
@@ -157,7 +157,9 @@ function makeTaskDraggable(sortableList) {
     });
 
     function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll("li:not(.dragging)")];
+        const draggableElements = [...container.querySelectorAll("li:not(.dragging)"), ...container.querySelectorAll(
+            "div:not(.dragging)"
+        ),];
         return draggableElements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
             const offset = y - box.top - box.height / 2;

@@ -108,6 +108,7 @@ ul div {
     flex-direction: row;
     gap: 5px;
     align-items: center;
+    border-bottom:5px solid #0388A6;
 }
 
 li {
@@ -115,10 +116,14 @@ li {
     margin: 5px;
     cursor: grab;
     display: flex;
-    justify-content: right;
+    justify-content:space-between;
     flex-direction: row;
     gap: 5px;
     align-items: center;
+}
+
+span {
+    color:#F28705;
 }
 
 /* Task List Button Styling */
