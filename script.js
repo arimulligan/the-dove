@@ -20,9 +20,9 @@
 // }
 
 document.addEventListener('DOMContentLoaded', loadTasks);
-document.getElementById('addTaskButtonNotDone').addEventListener('click', () => addTask('NotDone'));
-document.getElementById('addTaskButtonDoing').addEventListener('click', () => addTask('Doing'));
-document.getElementById('addTaskButtonDone').addEventListener('click', () => addTask('Done'));
+document.getElementById('taskInputNotDone').addEventListener('keydown', (event) =>{ if (event.key === 'Enter') {addTask('NotDone');}});
+document.getElementById('taskInputDoing').addEventListener('keydown', (event) =>{ if (event.key === 'Enter') {addTask('Doing');}});
+document.getElementById('taskInputDone').addEventListener('keydown', (event) =>{ if (event.key === 'Enter') {addTask('Done');}});
 makeTaskDraggable(document.getElementById('taskList'), null);
 
 function addTask(section) {
@@ -76,16 +76,17 @@ function addTaskToDOM(task) {
 function editTask(taskSpan, editButton) {
     const tasks = getTasksFromStorage();
     const task = tasks.find(t => t.id === taskSpan.id);
-
-    if (!taskSpan.isContentEditable) {
-        taskSpan.contentEditable = true;
-        taskSpan.focus();
-        editButton.textContent = 'Done';
-    } else {
-        taskSpan.contentEditable = false;
-        task.content = taskSpan.textContent;
-        saveTasksToStorage(tasks);
-        editButton.textContent = 'Edit';
+    if (task !== undefined){
+        if (!taskSpan.isContentEditable) {
+            taskSpan.contentEditable = true;
+            taskSpan.focus();
+            editButton.textContent = 'Done';
+        } else {
+            taskSpan.contentEditable = false;
+            task.content = taskSpan.textContent;
+            saveTasksToStorage(tasks);
+            editButton.textContent = 'Edit';
+        }
     }
 }
 
@@ -158,7 +159,7 @@ function makeTaskDraggable(sortableList, draggedItem) {
                 "li:not(.dragging)"
             ),
             ...container.querySelectorAll(
-                "h3:not(.dragging)"
+                "div:not(.dragging)"
             ),];
             
         return draggableElements.reduce(
