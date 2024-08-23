@@ -20,10 +20,9 @@
     "background": {
         "service_worker": "background.js"
     },
-    "options_page": "options.html",
     "action": {
-        "default_popup": "popup.html",
-        "default_title": "Settings",
+        "default_popup": "/popupWindow/goalsTab.html",
+        "default_title": "The Dove",
         "default_icon": {
             "16": "icons/doveLogo16.png",
             "48": "icons/doveLogo48.png",

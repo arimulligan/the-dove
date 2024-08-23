@@ -1,3 +1,10 @@
+document.getElementById('goalIcon').addEventListener('click', () => {
+    window.location.href = 'goalsTab.html';
+});
+document.getElementById('restIcon').addEventListener('click', () => {
+    window.location.href = 'restTab.html';
+});
+
 document.getElementById('save').addEventListener('click', function() {
     const url = document.getElementById('url').value;
         if (url) {

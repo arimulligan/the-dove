@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>The Dove</title>
+        <meta charset="utf-8">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+        <!-- <link rel="stylesheet" href="workTab.css"> -->
+        <link rel="stylesheet" href="shared.css">
+    </head>
+    <body>
+        <div class="flex-container">
+            <h1>The Do<span class="v-container"></span>e <button class="settings-cog"></button></h1>
+            <div class="bg-container">
+                <h2>Productivity</h2>
+                <h3>URL Blocker Options</h3>
+                <label for="url">Enter URL to Block:</label>
+                <input type="text" id="url" placeholder="https://www.example.com">
+                <button id="save">Save</button>
+                <button id="unblock">Unblock</button>
+            </div>
+            <div class="boxes">
+                <button class="unselected-box" id="goalIcon"></button>
+                <button class="selected-box" id="workIcon"></button>
+                <button class="unselected-box" id="restIcon"></button>
+            </div>
+        </div>
+    </body>
+    <script src="workTab.js"></script>
+</html>

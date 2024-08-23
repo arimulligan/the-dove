@@ -1,0 +1,56 @@
+#deleteButton {
+    background-image: url('/images/trashClosed.png');
+    width: 25px;
+    height: 45px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    padding: 0px;
+    margin-left: 0px;
+    background-color: #04668C;
+}
+
+#deleteButton:hover {
+    background-image: url('/images/trashOpen.png');
+    width: 30px;
+    height: 50px;
+}
+
+/* Task List */
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+ul div {
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    gap: 5px;
+    align-items: center;
+    border-bottom:5px solid #0388A6;
+}
+
+li {
+    cursor: grab;
+    display: flex;
+    justify-content:space-between;
+    flex-direction: row;
+    gap: 5px;
+    align-items: center;
+}
+
+/* each text point in the list */
+span {
+    color:#F28705;
+    width: 75vw;
+}
+
+#bulletPoint {
+    width: 25px;
+    height: 25px;
+    background-image: url('/images/leafBulletPoint.png');
+    background-size: contain;
+    background-repeat: no-repeat;
+    border-bottom: none;
+    margin-right: 15px;
+}

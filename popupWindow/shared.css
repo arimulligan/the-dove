@@ -14,7 +14,7 @@
     display: flex;
     justify-content: center;
     flex-direction: column;
-    gap: 10px;
+    /* gap: 10px; */
     padding: 10px;
     background-color: #0388A6;
 }
@@ -49,7 +49,7 @@ h3 {
     position: static;
     width: 40px;
     height: 40px;
-    background-image: url('images/doveWordmark.png');
+    background-image: url('/images/doveWordmark.png');
     background-size: contain;
     background-repeat: no-repeat;
     display: inline-block;
@@ -63,7 +63,7 @@ h3 {
     top: -10px;
     width: 30px;
     height: 30px;
-    background-image: url('images/settingsCog.png');
+    background-image: url('/images/settingsCog.png');
     background-size: contain;
     border: none;
     background-color: #0388A6;
@@ -71,6 +71,16 @@ h3 {
 
 .settings-cog:hover {
     background-color: #0388A6;
+}
+
+/* Dark Blue Background */
+.bg-container {
+    background-color: #04668C;
+    width: 97%;
+    height: 100%;
+    gap: 10px;
+    padding: 10px;
+    overflow-y: auto;
 }
 
 /* Input and Button Styling */
@@ -85,73 +95,6 @@ button {
     border: none;
     border-radius: 5px;
     transition: background-color 0.3s ease;
-}
-
-#deleteButton {
-    background-image: url('images/trashClosed.png');
-    width: 25px;
-    height: 45px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    padding: 0px;
-    margin-left: 0px;
-    background-color: #04668C;
-}
-
-#deleteButton:hover {
-    background-image: url('images/trashOpen.png');
-    width: 30px;
-    height: 50px;
-}
-
-/* Task List */
-ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-ul div {
-    display: flex;
-    justify-content: space-between;
-    flex-direction: row;
-    gap: 5px;
-    align-items: center;
-    border-bottom:5px solid #0388A6;
-}
-
-li {
-    cursor: grab;
-    display: flex;
-    justify-content:space-between;
-    flex-direction: row;
-    gap: 5px;
-    align-items: center;
-}
-
-/* each text point in the list */
-span {
-    color:#F28705;
-    width: 75vw;
-}
-
-#bulletPoint {
-    width: 25px;
-    height: 25px;
-    background-image: url('images/leafBulletPoint.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    border-bottom: none;
-    margin-right: 15px;
-}
-
-/* Dark Blue Background */
-.bg-container {
-    background-color: #04668C;
-    width: 97%;
-    height: 80%;
-    gap: 10px;
-    padding: 10px;
-    overflow-y: auto;
 }
 
 /* Nav-Bar Buttons */
@@ -174,15 +117,15 @@ span {
 }
 
 #goalIcon {
-    background-image: url('images/goalsIcon.png');
+    background-image: url('/images/goalsIcon.png');
 }
 
 #workIcon {
-    background-image: url('images/workIcon.png');
+    background-image: url('/images/workIcon.png');
 }
 
 #restIcon {
-    background-image: url('images/restIcon.png');
+    background-image: url('/images/restIcon.png');
 }
 
 .selected-box, .unselected-box:hover {

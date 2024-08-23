@@ -19,6 +19,12 @@
 //     location.reload();
 // }
 document.addEventListener('DOMContentLoaded', loadTasks);
+document.getElementById('workIcon').addEventListener('click', () => {
+    window.location.href = 'workTab.html';
+});
+document.getElementById('restIcon').addEventListener('click', () => {
+    window.location.href = 'restTab.html';
+});
 document.getElementById('taskInputNotDone').addEventListener('keydown', (event) =>{ if (event.key === 'Enter') {addTask('NotDone');}});
 document.getElementById('taskInputDoing').addEventListener('keydown', (event) =>{ if (event.key === 'Enter') {addTask('Doing');}});
 document.getElementById('taskInputDone').addEventListener('keydown', (event) =>{ if (event.key === 'Enter') {addTask('Done');}});
