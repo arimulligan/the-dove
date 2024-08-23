@@ -47,9 +47,9 @@ function addTask(section) {
 
 function addTaskToDOM(section, task) {
     const taskList = document.querySelector(`#taskList #h3${section}`).parentNode;
-
     const listItem = document.createElement('li');
     listItem.draggable = true;
+
     const taskSpan = document.createElement('span');
     taskSpan.id = task.id;
     taskSpan.textContent = task.content;
@@ -57,23 +57,20 @@ function addTaskToDOM(section, task) {
         e.preventDefault(); // make text not draggable (bug fix)
     });
     taskSpan.addEventListener('click', () => editTask(section, taskSpan));
-    listItem.appendChild(taskSpan);
-
+    
     const deleteButton = document.createElement('button');
-    deleteButton.textContent = 'Delete';
-    deleteButton.style.backgroundImage = 'url(images/trashClosed)';
-    deleteButton.style.backgroundRepeat = 'none';
+    deleteButton.id = 'deleteButton';
     deleteButton.onclick = () => {
         deleteTask(section, task.id);
         taskList.parentNode.removeChild(listItem);
     };
+
+    const prettyBulletPoint = document.createElement('div');
+    prettyBulletPoint.id = 'bulletPoint';
+
+    listItem.appendChild(prettyBulletPoint);
+    listItem.appendChild(taskSpan);
     listItem.appendChild(deleteButton);
-
-    const editButton = document.createElement('button');
-    editButton.textContent = 'Edit';
-    editButton.addEventListener('click', () => editTask(section, taskSpan));
-    listItem.appendChild(editButton);
-
     taskList.parentNode.insertBefore(listItem, taskList.nextSibling);
 }
 
