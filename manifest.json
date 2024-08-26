@@ -21,7 +21,7 @@
         "service_worker": "background.js"
     },
     "action": {
-        "default_popup": "/popupWindow/goalsTab.html",
+        "default_popup": "/popupWindow/popup.html",
         "default_title": "The Dove",
         "default_icon": {
             "16": "icons/doveLogo16.png",
