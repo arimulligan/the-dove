@@ -131,6 +131,8 @@ chrome.storage.local.get(['showDove'], (result) => {
         flyDoveImg.style.height = '200px';
         flyDoveImg.style.zIndex = '1000';
         flyDoveImg.style.animation = 'moveDown 5s linear';
+        flyDoveImg.style.animation = 'doveMoveDown 5s linear';
+        flyDoveImg.title = 'Double click to soar away!'
 
         // Create the rising branch image element
         const risingBranchImg = document.createElement('img');
@@ -142,6 +144,8 @@ chrome.storage.local.get(['showDove'], (result) => {
         risingBranchImg.style.zIndex = '999'; // below the dove
         risingBranchImg.style.top = '68%';
         risingBranchImg.style.animation = 'moveUp 5s linear';
+        risingBranchImg.style.animation = 'branchMoveUp 5s linear';
+        risingBranchImg.title = 'Double click to soar away!'
 
         // Append the images to the body
         document.body.appendChild(flyDoveImg);
@@ -187,6 +191,38 @@ chrome.storage.local.get(['showDove'], (result) => {
             doveText.textContent = "I'm Dave the dove!";
             document.body.appendChild(doveText);
             doveText.style.display = 'block'; // Make the text visible
+        flyDoveImg.addEventListener('animationend', (event) => {
+            if (event.animationName == 'doveMoveDown') {
+                // Replace the flying dove GIF with the standing dove image
+                flyDoveImg.src = standingDoveUrl;
+                flyDoveImg.style.animation = '';
+                flyDoveImg.style.top = '61%';
+                flyDoveImg.style.width = '100px';
+                flyDoveImg.style.height = '100px';
+                flyDoveImg.style.left = '80%';
+    
+                doveWorkArea.appendChild(doveText);
+                doveText.style.display = 'block'; // Make the text visible
+            } else {
+                flyDoveImg.style.display = 'none';
+                risingBranchImg.style.display = 'none';
+                chrome.storage.local.set({ showDove: !showDove });
+                chrome.runtime.sendMessage({ action: 'reload' }, (response) => {
+                    if (response.success) {
+                        console.log('showDove has been set successfully.');
+                    } else {
+                        console.error('Failed to set showDove.');
+                    }
+                });
+            }
+        });
+
+        // to fly away
+        flyDoveImg.addEventListener('dblclick', ()=> {
+            flyAway(doveText, flyDoveImg, risingBranchImg, flyingDoveGIFUrl);
+        });
+        risingBranchImg.addEventListener('dblclick', ()=> {
+            flyAway(doveText, flyDoveImg, risingBranchImg, flyingDoveGIFUrl);
         });
     } else {
         // Optionally, remove the GIF if it's not supposed to be shown
@@ -194,3 +230,14 @@ chrome.storage.local.get(['showDove'], (result) => {
         if (img) img.remove();
     }
 });
+
+function flyAway(doveText, flyDoveImg, risingBranchImg, flyingDoveGIFUrl) {
+    risingBranchImg.style.animation = 'branchMoveDown 5s linear';
+    doveText.style.display = 'none';
+
+    flyDoveImg.src = flyingDoveGIFUrl;
+    flyDoveImg.style.animation = 'doveMoveUp 5s linear';
+    flyDoveImg.style.left = '75%';
+    flyDoveImg.style.width = '200px';
+    flyDoveImg.style.height = '200px';
+}
