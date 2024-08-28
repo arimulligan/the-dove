@@ -35,3 +35,32 @@ chrome.runtime.onInstalled.addListener(() => {
         }
     });
 });
+
+// for relaoding current tab
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'reload') {
+        reloadPage();
+        sendResponse({ success: true });
+        // Indicate that the response will be sent asynchronously
+        return true;
+    }
+});
+
+function reloadPage() {
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (chrome.runtime.lastError) {
+            console.error('Error querying tabs:', chrome.runtime.lastError);
+            return;
+        }
+        if (tabs.length > 0) {
+            chrome.scripting.executeScript({
+                target: { tabId: tabs[0].id },
+                function: reloadTab
+            });
+        }
+    });
+
+    function reloadTab() {
+        location.reload();
+    }
+}
