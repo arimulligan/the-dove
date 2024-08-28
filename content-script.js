@@ -72,6 +72,57 @@ const quotes = {
         }
     ]
 };
+
+const styleCSS = `
+    @keyframes doveMoveDown {
+        0% { top: -200px; }
+        100% { top: 55%; }
+    }
+    @keyframes doveMoveUp {
+        0% { top: 55%; }
+        100% { top: -200px; }
+    }
+    @keyframes branchMoveUp {
+        0% { top: 100%; }
+        100% { top: 68%; }
+    }
+    @keyframes branchMoveDown {
+        0% { top: 68%; }
+        100% { top: 100%; }
+    }
+    #The-Dove-Extension-Area {
+        .dove-text {
+            width: 200px;
+            position: fixed;
+            left: 60%;
+            top: 50%;
+            color: white;
+            background-color: #04668c;
+            padding: 20px;
+            border-radius: 50px;
+            z-index: 1001;
+            display: none;
+        }
+
+        input {
+            background-color: #04668c;
+            border-color: #0388A6;
+        }
+
+        input[type="radio"] {
+            position: relative;
+            opacity: 100;
+        }
+        
+        img:hover {
+            cursor: grab;
+        }
+
+        *, label, div { font-family: Arial; }
+        ::placeholder { color: rgba(255, 255, 255, 0.5); }
+    }
+`;
+
 function getQuote() {
     // Randomly pick a category (e.g., "Bible Verses", "Facts", "Questions")
     const category = Object.keys(quotes)[Math.floor(Math.random() * 3)];
@@ -112,10 +163,45 @@ function getQuote() {
         };
     }
 }
+
+function getDoveTextContainer() {
+    const { questionType, questionText, options } = getQuote();
+    console.log(questionText); // For debugging purposes
+
+    const doveTextContainer = document.createElement('div');
+    doveTextContainer.className = 'dove-text';
+
+    const questionElement = document.createElement('div');
+    questionElement.textContent = questionText;
+    doveTextContainer.appendChild(questionElement);
+
+    if (questionType === 'Textbox') {
+        // Create a textbox for the user to answer
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.placeholder = 'Type away...';
+        doveTextContainer.appendChild(input);
+    } else if (questionType === 'RadioButton') {
+        // Create radio buttons for the user to choose from
+        options.forEach(option => {
+            const label = document.createElement('label');
+            const radio = document.createElement('input');
+            radio.type = 'radio';
+            radio.name = 'dove-question';
+            radio.value = option;
+            label.appendChild(radio);
+            label.appendChild(document.createTextNode(option));
+            doveTextContainer.appendChild(label);
+            doveTextContainer.appendChild(document.createElement('br'));
+        });
+    }
+    return doveTextContainer;
+}
+
 // Check storage for showDove state
 chrome.storage.local.get(['showDove'], (result) => {
     const showDove = result.showDove ?? false;
-
+    
     if (showDove) {
         // URL of the doves images
         const flyingDoveGIFUrl = chrome.runtime.getURL('images/flyingDove.gif');
@@ -130,7 +216,6 @@ chrome.storage.local.get(['showDove'], (result) => {
         flyDoveImg.style.width = '200px';
         flyDoveImg.style.height = '200px';
         flyDoveImg.style.zIndex = '1000';
-        flyDoveImg.style.animation = 'moveDown 5s linear';
         flyDoveImg.style.animation = 'doveMoveDown 5s linear';
         flyDoveImg.title = 'Double click to soar away!'
 
@@ -143,54 +228,22 @@ chrome.storage.local.get(['showDove'], (result) => {
         risingBranchImg.style.height = '250px';
         risingBranchImg.style.zIndex = '999'; // below the dove
         risingBranchImg.style.top = '68%';
-        risingBranchImg.style.animation = 'moveUp 5s linear';
         risingBranchImg.style.animation = 'branchMoveUp 5s linear';
         risingBranchImg.title = 'Double click to soar away!'
 
         // Append the images to the body
-        document.body.appendChild(flyDoveImg);
-        document.body.appendChild(risingBranchImg);
+        const doveWorkArea = document.createElement('div');
+        doveWorkArea.id = 'The-Dove-Extension-Area';
+        doveWorkArea.appendChild(flyDoveImg);
+        doveWorkArea.appendChild(risingBranchImg);
+        document.body.appendChild(doveWorkArea);
 
         // Add the CSS animation
         const style = document.createElement('style');
-        style.innerHTML = `
-            @keyframes moveDown {
-                0% { top: -200px; }
-                100% { top: 55%; }
-            }
-            @keyframes moveUp {
-                0% { top: 90%; }
-                100% { top: 68%; }
-            }
-            .dove-text {
-                position: fixed;
-                left: 77%;
-                top: 58%;
-                font-size: 20px;
-                color: white;
-                background-color: rgba(3,136,166, 0.5); /*lighter blue*/
-                padding: 5px;
-                border-radius: 5px;
-                z-index: 1001;
-                display: none;
-            }
-        `;
+        style.innerHTML = styleCSS;
         document.head.appendChild(style);
 
-        flyDoveImg.addEventListener('animationend', () => {
-            // Replace the flying dove GIF with the standing dove image
-            flyDoveImg.src = standingDoveUrl;
-            flyDoveImg.style.animation = '';
-            flyDoveImg.style.top = '61%';
-            flyDoveImg.style.width = '100px';
-            flyDoveImg.style.height = '100px';
-            flyDoveImg.style.left = '80%';
-
-            const doveText = document.createElement('div');
-            doveText.className = 'dove-text';
-            doveText.textContent = "I'm Dave the dove!";
-            document.body.appendChild(doveText);
-            doveText.style.display = 'block'; // Make the text visible
+        const doveText = getDoveTextContainer();
         flyDoveImg.addEventListener('animationend', (event) => {
             if (event.animationName == 'doveMoveDown') {
                 // Replace the flying dove GIF with the standing dove image
