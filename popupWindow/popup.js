@@ -283,23 +283,30 @@ function loadRestTab() {
 // SETTINGS
 function loadSettings() {
     document.getElementById('onOrOff').addEventListener('click', () => {
-        chrome.storage.local.get(['showDove'], (result) => {
-            const showDove = result.showDove ?? false; // Default to true if undefined
-            // setting showDove to local storage 
+        chrome.storage.local.get('showDove', (result) => {
+            const showDove = result.showDove ?? false;
             chrome.storage.local.set({ showDove: !showDove }, () => {
-                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                    if (tabs.length > 0) {
-                        chrome.scripting.executeScript({
-                            target: { tabId: tabs[0].id },
-                            function: reloadPage
-                        });
-                    }
-                });
+                reloadPage();
             });
         });
     });
 }
 
 function reloadPage() {
-    location.reload();
+    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+        if (chrome.runtime.lastError) {
+            console.error('Error querying tabs:', chrome.runtime.lastError);
+            return;
+        }
+        if (tabs.length > 0) {
+            chrome.scripting.executeScript({
+                target: { tabId: tabs[0].id },
+                function: reloadTab
+            });
+        }
+    });
+
+    function reloadTab() {
+        location.reload();
+    }
 }
