@@ -14,21 +14,25 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3 draggable="false" id="h3Done">Done</h3>
                         <input type="text" id="taskInputDone" placeholder="Add an old task..." draggable=false style="display: inline-block;">
                     </div>
-                </ul>
-                <script src="goalsTab.js"></script>`,
+                </ul>`,
         workTab: `<h2>Work</h2>
+                <button id="editTimersBtn" class="edit-buttons">Edit Timers</button>
+                <button id="redirectBtn" class="edit-buttons">Redirect websites</button>
                 <div class="timer-container">
-                    <div class="controls">
-                        <button id="startBtn">Start</button>
-                        <button id="pauseBtn">Pause</button>
-                    </div>
-                    <div class="countdown-container">
+                    <span class="circular-bg">
                         <span class="circular-progress">
-                            <div class="countdown"></div>
+                            <button id="startBtn">Start working</button>
+                            <h3 class="countdown"></h3>
                         </span>
-                    </div>
+                    </span>
                 </div>
-                <h3>URL Blocker Options</h3>
+                <h2 style="font-size: 20px; right: 15%; top: -11%;">Distracted on certain sites?</h2>
+                <ul id="taskList">
+                    <div>
+                        <h3 draggable="false" id="blockerHeader" style="font-size: 15px; font-style: normal;">Block the keywords</h3>
+                        <input type="text" id="taskInputBlockerHeader" placeholder="Enter word here..." draggable=false style="display: inline-block;">
+                    </div>
+                </ul>
                 <label for="url">Enter URL to Block:</label>
                 <input type="text" id="url" placeholder="https://www.example.com">
                 <button id="save">Save</button>
