@@ -16,7 +16,18 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </ul>
                 <script src="goalsTab.js"></script>`,
-        workTab: `<h2>Productivity</h2>
+        workTab: `<h2>Work</h2>
+                <div class="timer-container">
+                    <div class="controls">
+                        <button id="startBtn">Start</button>
+                        <button id="pauseBtn">Pause</button>
+                    </div>
+                    <div class="countdown-container">
+                        <span class="circular-progress">
+                            <div class="countdown"></div>
+                        </span>
+                    </div>
+                </div>
                 <h3>URL Blocker Options</h3>
                 <label for="url">Enter URL to Block:</label>
                 <input type="text" id="url" placeholder="https://www.example.com">
@@ -242,6 +253,8 @@ function makeTaskDraggable(sortableList) {
 
 // WORK TAB
 function loadWorkTab() {
+    doCountdownTimer();
+
     document.getElementById('save').addEventListener('click', function() {
         const url = document.getElementById('url').value;
             if (url) {
@@ -274,11 +287,106 @@ function loadWorkTab() {
 
 document.addEventListener('DOMContentLoaded', function() {
     chrome.storage.sync.get('blockedUrl', function(data) {
-        if (data.blockedUrl) {
+        if (data.blockedUrl && document.getElementById('url')) {
             document.getElementById('url').value = data.blockedUrl;
         }
     });
 });
+
+function doCountdownTimer() {
+    const startBtn = document.getElementById('startBtn');
+    const pauseBtn = document.getElementById('pauseBtn');
+    const countdownView = document.getElementsByClassName('countdown')[0];
+    const circularProgressEl = document.getElementsByClassName("circular-progress")[0];
+    let circularProgress;
+    let circularProgressIntervalID;
+    let totalTime = 10;
+    let timeLeft;
+    let countDownIntervalID;
+    let isPaused = false;
+    pauseBtn.style.display = 'none';
+
+    startBtn.addEventListener('click', startOrStopTimer);
+    pauseBtn.addEventListener('click', pauseOrResumeTimer);
+
+    function startOrStopTimer() {
+        startBtn.innerHTML = startBtn.innerHTML === 'Start' ? 'Stop' : 'Start';
+        if (countDownIntervalID === undefined && !isPaused) {
+            timeLeft = totalTime;
+            startTimer();
+            pauseBtn.style.display = 'inline';
+            startCircularProgressAnimation();
+        } else {
+            stopTimer();
+            countdownView.innerHTML = '';
+            pauseBtn.style.display = 'none';
+            isPaused = false;
+            pauseBtn.innerHTML = 'Pause';
+            stopCircularProgressAnimation();
+        }
+    }
+
+    function startTimer() {
+        countDownIntervalID = setInterval(() => {
+        countdownView.innerHTML = timeLeft;
+        if (timeLeft === 0) {
+            stopTimer();
+            startBtn.innerHTML = 'Start';
+            pauseBtn.style.display = 'none';
+            countdownView.innerHTML = '';
+        } else {
+            timeLeft = timeLeft - 1;
+        }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (countDownIntervalID !== undefined) {
+            clearInterval(countDownIntervalID);
+            countDownIntervalID = undefined;
+        }
+    }
+
+    function pauseOrResumeTimer() {
+        isPaused = !isPaused;
+        pauseBtn.innerHTML = isPaused ? 'Resume' : 'Pause';
+        if (countDownIntervalID !== undefined) {
+            stopTimer();
+            pauseCircularProgressAnimation();
+        } else {
+            startTimer();
+            resumeCircularProgressAnimation();
+        }
+    }
+
+    function startCircularProgressAnimation() {
+        let start = totalTime - timeLeft;
+        let degreesPerSecond = 360 / totalTime;
+        let degreesPerInterval = degreesPerSecond / 20;
+        circularProgress = degreesPerSecond * start; 
+        circularProgressIntervalID = setInterval(() => {
+        if (Math.round(circularProgress) === 360) {
+            clearInterval(circularProgressIntervalID);
+        } else {
+            circularProgress = circularProgress + degreesPerInterval;
+            circularProgressEl.style.background = `conic-gradient(#9b51e0 ${circularProgress}deg, #13171f 0deg)`;
+        }
+        }, 50);
+    }
+
+    function resumeCircularProgressAnimation() {
+        startCircularProgressAnimation();
+    }
+    
+    function pauseCircularProgressAnimation() {
+        clearInterval(circularProgressIntervalID);
+    }
+    
+    function stopCircularProgressAnimation() {
+        clearInterval(circularProgressIntervalID);
+        circularProgressEl.style.background = `conic-gradient(#9b51e0 0deg, #13171f 0deg)`;
+    }
+}
 
 // REST TAB
 function loadRestTab() {

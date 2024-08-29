@@ -198,3 +198,63 @@ span {
     border-bottom: none;
     margin-right: 15px;
 }
+
+/* for countdown timer */
+.timer-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.controls {
+    width: 20%;
+    /* margin-top: 10%; */
+    display: flex;
+    justify-content: space-between;
+    flex-direction: row;
+    flex-wrap: wrap;
+}
+
+.countdown-container {
+    position: relative;
+    width: 40vw;
+    height: 40vw;
+    /* margin-top: 2%; */
+    /* border: 0.4em solid #9b51e0; */
+}
+
+.countdown {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 5em;
+    color: #9b51e0;
+}
+
+.circular-progress {
+    width: 40vw;
+    height: 40vw;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: absolute;
+    transition: 0.5s;
+    background-color: #13171f;
+}
+
+.circular-progress::before {
+    width: 38.5vw;
+    height: 38.5vw;
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    background-color: black;
+}
