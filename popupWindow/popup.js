@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </ul>`,
         workTab: `<h2>Work</h2>
                 <button id="editTimersBtn" class="edit-buttons">Edit Timers</button>
-                <button id="redirectBtn" class="edit-buttons">Redirect websites</button>
                 <div class="timer-container">
                     <span class="circular-bg">
                         <span class="circular-progress">
@@ -43,6 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button id="onOrOff">On/Off</button>
             </div>`
     };
+
+    // <button id="redirectBtn" class="edit-buttons">Redirect websites</button> to go below edittimersBtn (if i have time)
     const loadContent = {
         goalsTab: loadTasks,
         workTab: loadWorkTab,
