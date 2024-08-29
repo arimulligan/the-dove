@@ -58,6 +58,11 @@ document.querySelector('.boxes').addEventListener('click', (event) => {
         const targetPage = event.target.getAttribute('data-target');
         document.getElementById('content').innerHTML = content[targetPage];
         loadContent.settingsTab();
+
+        document.querySelectorAll('.boxes button').forEach(btn => {
+            btn.classList.remove('selected-box');
+            btn.classList.add('unselected-box');
+        });
     });
 
     // load the default tab on page load
