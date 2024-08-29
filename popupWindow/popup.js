@@ -299,7 +299,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function doCountdownTimer() {
     const startBtn = document.getElementById('startBtn');
-    const pauseBtn = document.getElementById('pauseBtn');
+    const editTimersBtn = document.getElementById('editTimersBtn');
     const countdownView = document.getElementsByClassName('countdown')[0];
     const circularProgressEl = document.getElementsByClassName("circular-progress")[0];
     let circularProgress;
@@ -308,58 +308,51 @@ function doCountdownTimer() {
     let timeLeft;
     let countDownIntervalID;
     let isPaused = false;
-    pauseBtn.style.display = 'none';
+    let running = false;
 
-    startBtn.addEventListener('click', startOrStopTimer);
-    pauseBtn.addEventListener('click', pauseOrResumeTimer);
-
-    function startOrStopTimer() {
-        startBtn.innerHTML = startBtn.innerHTML === 'Start' ? 'Stop' : 'Start';
-        if (countDownIntervalID === undefined && !isPaused) {
-            timeLeft = totalTime;
-            startTimer();
-            pauseBtn.style.display = 'inline';
-            startCircularProgressAnimation();
-        } else {
-            stopTimer();
-            countdownView.innerHTML = '';
-            pauseBtn.style.display = 'none';
-            isPaused = false;
-            pauseBtn.innerHTML = 'Pause';
-            stopCircularProgressAnimation();
-        }
-    }
+    startBtn.addEventListener('click', startTimer);
+    editTimersBtn.addEventListener('click', editTimers);
 
     function startTimer() {
-        countDownIntervalID = setInterval(() => {
-        countdownView.innerHTML = timeLeft;
-        if (timeLeft === 0) {
-            stopTimer();
-            startBtn.innerHTML = 'Start';
-            pauseBtn.style.display = 'none';
-            countdownView.innerHTML = '';
-        } else {
-            timeLeft = timeLeft - 1;
+        if (countDownIntervalID === undefined && !isPaused && !running) {
+            timeLeft = totalTime;
+            startBtn.style.display = "none";
         }
-        }, 1000);
+        
+        countDownIntervalID = setInterval(() => {
+            countdownView.innerHTML = timeLeft + " minutes left";
+            if (timeLeft === 0) {
+                stopTimer();
+                countdownView.innerHTML = 'Finished';
+                return;
+            } else {
+                timeLeft = timeLeft - 1;
+            }
+        }, 1000); // TODO: change to minutes
+        
+        running = true;
+        startCircularProgressAnimation();
     }
 
     function stopTimer() {
         if (countDownIntervalID !== undefined) {
             clearInterval(countDownIntervalID);
             countDownIntervalID = undefined;
+            stopCircularProgressAnimation();
         }
     }
 
-    function pauseOrResumeTimer() {
-        isPaused = !isPaused;
-        pauseBtn.innerHTML = isPaused ? 'Resume' : 'Pause';
-        if (countDownIntervalID !== undefined) {
-            stopTimer();
-            pauseCircularProgressAnimation();
+    function editTimers() {
+        if (!running){
+
         } else {
-            startTimer();
-            resumeCircularProgressAnimation();
+            isPaused = !isPaused;
+            editTimersBtn.innerHTML = isPaused ? 'Resume' : 'Pause';
+            if (countDownIntervalID !== undefined) {
+                stopTimer();
+            } else {
+                startTimer();
+            }
         }
     }
 
@@ -367,28 +360,22 @@ function doCountdownTimer() {
         let start = totalTime - timeLeft;
         let degreesPerSecond = 360 / totalTime;
         let degreesPerInterval = degreesPerSecond / 20;
-        circularProgress = degreesPerSecond * start; 
+        circularProgress = degreesPerSecond * start;
         circularProgressIntervalID = setInterval(() => {
         if (Math.round(circularProgress) === 360) {
             clearInterval(circularProgressIntervalID);
         } else {
             circularProgress = circularProgress + degreesPerInterval;
-            circularProgressEl.style.background = `conic-gradient(#9b51e0 ${circularProgress}deg, #13171f 0deg)`;
+            circularProgressEl.style.background = `conic-gradient(#0388A6 ${circularProgress}deg, #04668C 0deg)`;
         }
         }, 50);
-    }
-
-    function resumeCircularProgressAnimation() {
-        startCircularProgressAnimation();
-    }
-    
-    function pauseCircularProgressAnimation() {
-        clearInterval(circularProgressIntervalID);
     }
     
     function stopCircularProgressAnimation() {
         clearInterval(circularProgressIntervalID);
-        circularProgressEl.style.background = `conic-gradient(#9b51e0 0deg, #13171f 0deg)`;
+        if (!isPaused) {
+            circularProgressEl.style.background = `conic-gradient(#0388A6 0deg, #04668C 0deg)`;
+        }
     }
 }
 
