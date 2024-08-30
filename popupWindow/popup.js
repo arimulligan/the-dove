@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h2 style="font-size: 20px; right: 15%; top: -11%;">Distracted on certain sites?</h2>
                 <ul id="taskList">
                     <div>
-                        <h3 draggable="false" id="blockerHeader" style="font-size: 15px; font-style: normal;">Block the keywords</h3>
+                        <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
                         <input type="text" id="taskInputBlockerHeader" placeholder="Enter word here..." draggable=false style="display: inline-block;">
                     </div>
                 </ul>
@@ -37,10 +37,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button id="save">Save</button>
                 <button id="unblock">Unblock</button>`,
         restTab: `<h2>Resting...</h2>`,
-        settingsTab: `<div style="width: 450px; order:2">
-                <h2 class="text-center">Turn off flying dove?</h2>
-                <button id="onOrOff">On/Off</button>
-            </div>`
+        settingsTab: `<h2>Settings</h2>
+                    <h3 style="font-size:20px;">Interactive Dove Reminders:</h3>
+                    <div class="column-container">
+                        <div class="row-container">
+                            <h4>Turn off flying dove indefinitely?</h4>
+                            <button id="onOrOff" class="edit-buttons"></button>
+                        </div>
+                    </div>
+            `
     };
 
     // <button id="redirectBtn" class="edit-buttons">Redirect websites</button> to go below edittimersBtn (if i have time)
@@ -387,9 +392,17 @@ function loadRestTab() {
 
 // SETTINGS
 function loadSettings() {
-    document.getElementById('onOrOff').addEventListener('click', () => {
+    const toggleInteractionElem = document.getElementById('onOrOff');
+    if (toggleInteractionElem.innerHTML == '') {
         chrome.storage.local.get('showDove', (result) => {
-            const showDove = result.showDove ?? false;
+            const showDove = result.showDove ?? true;
+            toggleInteractionElem.innerHTML = showDove ? 'Turn Off' : 'Turn On';
+        });
+    }
+    toggleInteractionElem.addEventListener('click', () => {
+        chrome.storage.local.get('showDove', (result) => {
+            const showDove = result.showDove ?? true;
+            toggleInteractionElem.innerHTML = showDove ? 'Turn Off' : 'Turn On';
             chrome.storage.local.set({ showDove: !showDove }, () => {
                 reloadPage();
             });

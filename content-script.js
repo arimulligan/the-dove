@@ -200,7 +200,7 @@ function getDoveTextContainer() {
 
 // Check storage for showDove state
 chrome.storage.local.get(['showDove'], (result) => {
-    const showDove = result.showDove ?? false;
+    const showDove = result.showDove ?? true;
     
     if (showDove) {
         // URL of the doves images
