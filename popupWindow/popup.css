@@ -42,7 +42,7 @@ h3, h4 {
 }
 
 h4 {
-    font-size: 20px;
+    font-size: 15px;
     font-style: normal;
     font-weight:800;
 }
@@ -279,8 +279,9 @@ button#redirectBtn {
 .row-container {
     align-items: center;
     display: flex;
-    justify-content: center;
+    justify-content:space-between;
     flex-direction: row;
+    width: 100%;
 }
 
 .column-container {
@@ -288,4 +289,5 @@ button#redirectBtn {
     display: flex;
     justify-content: center;
     flex-direction: column;
+    margin-top: 3px;
 }

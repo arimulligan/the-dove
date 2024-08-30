@@ -38,11 +38,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button id="unblock">Unblock</button>`,
         restTab: `<h2>Resting...</h2>`,
         settingsTab: `<h2>Settings</h2>
-                    <h3 style="font-size:20px;">Interactive Dove Reminders:</h3>
+                    <h3 style="font-size:20px; border-bottom:5px solid #0388A6;">Interactive Dove Reminders:</h3>
                     <div class="column-container">
                         <div class="row-container">
-                            <h4>Turn off flying dove indefinitely?</h4>
+                            <h4>Turn on/off reminders indefinitely?</h4>
                             <button id="onOrOff" class="edit-buttons"></button>
+                        </div>
+                        <div class="row-container">
+                            <h4>Change the reminder frequency?</h4>
+                            <div class="column-container">
+                                <input id="remIntervals" type="range" min="0" max="23.75" step="0.25" style="width: 90%;" value="1.5"></input>
+                                <h4 id="remIntervalsValue"></h4>
+                            </div>
                         </div>
                     </div>
             `
@@ -406,6 +413,24 @@ function loadSettings() {
             chrome.storage.local.set({ showDove: !showDove }, () => {
                 reloadPage();
             });
+        });
+    });
+
+    const value = document.querySelector("#remIntervalsValue");
+    const input = document.querySelector("#remIntervals");
+    value.textContent = "1 hour(s), and 30 minutes.";
+    input.addEventListener("input", (event) => {
+        const decimalHours = event.target.value;
+        const n = new Date(0,0);
+        n.setMinutes(+Math.round(decimalHours * 60)); 
+        const hours = n.getHours()
+        const minutes = n.getMinutes()
+
+        value.textContent = hours+ " hour(s), and "+minutes+" minutes.";
+    });
+    input.addEventListener("mouseup", (event) => {
+        chrome.storage.sync.set({ reminderInterval: event.target.value }, () => {
+            alert('I will now fly down and remind you \nthrough quotes, verses, and sassy questions every: \n\n'+ value.textContent);
         });
     });
 }

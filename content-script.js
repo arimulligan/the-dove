@@ -259,8 +259,6 @@ chrome.storage.local.get(['showDove'], (result) => {
             } else {
                 flyDoveImg.style.display = 'none';
                 risingBranchImg.style.display = 'none';
-                // chrome.storage.local.set({ showDove: !showDove });
-                // chrome.runtime.sendMessage({ action: 'reload' });
             }
         });
 
