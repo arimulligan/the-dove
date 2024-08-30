@@ -14,7 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3 draggable="false" id="h3Done">Done</h3>
                         <input type="text" id="taskInputDone" placeholder="Add an old task..." draggable=false style="display: inline-block;">
                     </div>
-                </ul>`,
+                </ul>
+                <h4>Remember: Double click the dove or branch to make them fly away...</h4>`,
         workTab: `<h2>Work</h2>
                 <button id="editTimersBtn" class="edit-buttons">Edit Timers</button>
                 <div class="timer-container">
