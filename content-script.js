@@ -198,11 +198,15 @@ function getDoveTextContainer() {
     return doveTextContainer;
 }
 
-// Check storage for showDove state
-chrome.storage.local.get(['showDove'], (result) => {
-    const showDove = result.showDove ?? true;
-    
-    if (showDove) {
+// dove will remind if interval timer tells
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'doveReminding') {
+
+        const existingDove = document.getElementById('The-Dove-Extension-Area');
+        if (existingDove) {
+            existingDove.remove();
+        }
+
         // URL of the doves images
         const flyingDoveGIFUrl = chrome.runtime.getURL('images/flyingDove.gif');
         const standingDoveUrl = chrome.runtime.getURL('images/standingBird.png');
@@ -261,6 +265,11 @@ chrome.storage.local.get(['showDove'], (result) => {
                 risingBranchImg.style.display = 'none';
             }
         });
+
+        // Set a timeout to make the dove fly away after a while
+        setTimeout(() => {
+            flyAway(doveText, flyDoveImg, risingBranchImg, flyingDoveGIFUrl);
+        }, 7000); // TODO: it's only 7 seconds timeout for debugging
 
         // to fly away
         flyDoveImg.addEventListener('dblclick', ()=> {

@@ -429,7 +429,8 @@ function loadSettings() {
         value.textContent = hours+ " hour(s), and "+minutes+" minutes.";
     });
     input.addEventListener("mouseup", (event) => {
-        chrome.storage.sync.set({ reminderInterval: event.target.value }, () => {
+        const reminderInterval = event.target.value * 3600000; // Convert hours to milliseconds
+        chrome.storage.sync.set({ reminderInterval: reminderInterval }, () => {
             alert('I will now fly down and remind you \nthrough quotes, verses, and sassy questions every: \n\n'+ value.textContent);
         });
     });

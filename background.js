@@ -1,3 +1,4 @@
+// for URL blocking
 chrome.runtime.onInstalled.addListener(() => {
     chrome.storage.sync.get("blockedUrl", function(data) {
         const blockedUrl = data.blockedUrl || "";
@@ -61,3 +62,42 @@ function reloadPage() {
         location.reload();
     }
 }
+
+// for the dove reminder intervals
+let reminderTimer;
+
+function setReminder(interval) {
+    if (reminderTimer) {
+        clearInterval(reminderTimer);
+    }
+
+    setInterval(() => {
+        chrome.storage.local.get(['showDoveIndefinitely'], (result) => {
+            const showDoveIndefinitely = result.showDoveIndefinitely ?? true;
+            if (showDoveIndefinitely) {
+                chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                    if (tabs.length > 0) {
+                        chrome.tabs.sendMessage(tabs[0].id, { action: 'doveReminding' }, (response) => {
+                            if (chrome.runtime.lastError) {
+                                console.error('Error sending message:', chrome.runtime.lastError);
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    }, 15000); // TODO: once finished debugging change 15000 to interval
+}
+
+chrome.runtime.onInstalled.addListener(() => {
+    chrome.storage.sync.get('reminderInterval', (data) => {
+        const interval = data.reminderInterval || 5400000; // Default to 1.5 hours
+        setReminder(interval);
+    });
+});
+
+chrome.storage.onChanged.addListener((changes, namespace) => {
+    if (changes.reminderInterval) {
+        setReminder(changes.reminderInterval.newValue);
+    }
+});
