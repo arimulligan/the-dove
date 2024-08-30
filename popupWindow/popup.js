@@ -14,7 +14,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h3 draggable="false" id="h3Done">Done</h3>
                         <input type="text" id="taskInputDone" placeholder="Add an old task..." draggable=false style="display: inline-block;">
                     </div>
-                </ul>`,
+                </ul>
+                <h4>Remember: Double click the dove or branch to make them fly away...</h4>`,
         workTab: `<h2>Work</h2>
                 <button id="editTimersBtn" class="edit-buttons">Edit Timers</button>
                 <div class="timer-container">
@@ -28,7 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h2 style="font-size: 20px; right: 15%; top: -11%;">Distracted on certain sites?</h2>
                 <ul id="taskList">
                     <div>
-                        <h3 draggable="false" id="blockerHeader" style="font-size: 15px; font-style: normal;">Block the keywords</h3>
+                        <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
                         <input type="text" id="taskInputBlockerHeader" placeholder="Enter word here..." draggable=false style="display: inline-block;">
                     </div>
                 </ul>
@@ -37,10 +38,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button id="save">Save</button>
                 <button id="unblock">Unblock</button>`,
         restTab: `<h2>Resting...</h2>`,
-        settingsTab: `<div style="width: 450px; order:2">
-                <h2 class="text-center">Turn off flying dove?</h2>
-                <button id="onOrOff">On/Off</button>
-            </div>`
+        settingsTab: `<h2>Settings</h2>
+                    <h3 style="font-size:20px; border-bottom:5px solid #0388A6;">Interactive Dove Reminders:</h3>
+                    <div class="column-container">
+                        <div class="row-container">
+                            <h4>Turn on/off reminders indefinitely?</h4>
+                            <button id="onOrOff" class="edit-buttons"></button>
+                        </div>
+                        <div class="row-container">
+                            <h4>Change the reminder frequency?</h4>
+                            <div class="column-container">
+                                <input id="remIntervals" type="range" min="0" max="23.75" step="0.25" style="width: 90%;" value="1.5"></input>
+                                <h4 id="remIntervalsValue"></h4>
+                            </div>
+                        </div>
+                    </div>
+            `
     };
 
     // <button id="redirectBtn" class="edit-buttons">Redirect websites</button> to go below edittimersBtn (if i have time)
@@ -387,12 +400,39 @@ function loadRestTab() {
 
 // SETTINGS
 function loadSettings() {
-    document.getElementById('onOrOff').addEventListener('click', () => {
-        chrome.storage.local.get('showDove', (result) => {
-            const showDove = result.showDove ?? false;
-            chrome.storage.local.set({ showDove: !showDove }, () => {
+    const toggleInteractionElem = document.getElementById('onOrOff');
+    if (toggleInteractionElem.innerHTML == '') {
+        chrome.storage.local.get('showDoveIndefinitely', (result) => {
+            const showDoveIndefinitely = result.showDoveIndefinitely ?? true;
+            toggleInteractionElem.innerHTML = showDoveIndefinitely ? 'Turn Off' : 'Turn On';
+        });
+    }
+    toggleInteractionElem.addEventListener('click', () => {
+        chrome.storage.local.get('showDoveIndefinitely', (result) => {
+            const showDoveIndefinitely = result.showDoveIndefinitely ?? true;
+            toggleInteractionElem.innerHTML = showDoveIndefinitely ? 'Turn Off' : 'Turn On';
+            chrome.storage.local.set({ showDoveIndefinitely: !showDoveIndefinitely }, () => {
                 reloadPage();
             });
+        });
+    });
+
+    const value = document.querySelector("#remIntervalsValue");
+    const input = document.querySelector("#remIntervals");
+    value.textContent = "1 hour(s), and 30 minutes.";
+    input.addEventListener("input", (event) => {
+        const decimalHours = event.target.value;
+        const n = new Date(0,0);
+        n.setMinutes(+Math.round(decimalHours * 60)); 
+        const hours = n.getHours()
+        const minutes = n.getMinutes()
+
+        value.textContent = hours+ " hour(s), and "+minutes+" minutes.";
+    });
+    input.addEventListener("mouseup", (event) => {
+        const reminderInterval = event.target.value * 3600000; // Convert hours to milliseconds
+        chrome.storage.sync.set({ reminderInterval: reminderInterval }, () => {
+            alert('I will now fly down and remind you \nthrough quotes, verses, and sassy questions every: \n\n'+ value.textContent);
         });
     });
 }

@@ -26,19 +26,25 @@ h1, h2 {
     position: relative;
 }
 
-h2, h3 {
+h2, h3, h4 {
     font-size: 25px;
     color: #F2A007;
     text-align: center;
     background-color: #04668C;
 }
 
-h3 {
+h3, h4 {
     font-family: Arial;
     font-style:oblique;
     font-weight: lighter;
     text-align: left;
     padding: 5px;
+}
+
+h4 {
+    font-size: 15px;
+    font-style: normal;
+    font-weight:800;
 }
 
 /* Dove Icon */
@@ -214,19 +220,23 @@ span {
     position: relative;
     width: 60px;
     height: 60px;
-    top: -10%;
-    left: 74%;
     font-weight: 900;
     background-color: #F2A007;
     border-radius: 30%;
     color: #8C5C4A;
     padding: 0%;
     z-index: 10;
+    margin: auto;
 }
 
 .edit-buttons:hover {
     background-color: #F28705;
     border-radius: 20%;
+}
+
+button#editTimersBtn {
+    top: -10%;
+    left: 74%;
 }
 
 button#redirectBtn {
@@ -263,4 +273,21 @@ button#redirectBtn {
     position: relative;
     border-radius: 50%;
     background-color: #0388A6;
+}
+
+/* Default containers */
+.row-container {
+    align-items: center;
+    display: flex;
+    justify-content:space-between;
+    flex-direction: row;
+    width: 100%;
+}
+
+.column-container {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    margin-top: 3px;
 }
