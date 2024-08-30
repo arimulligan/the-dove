@@ -260,13 +260,7 @@ chrome.storage.local.get(['showDove'], (result) => {
                 flyDoveImg.style.display = 'none';
                 risingBranchImg.style.display = 'none';
                 chrome.storage.local.set({ showDove: !showDove });
-                chrome.runtime.sendMessage({ action: 'reload' }, (response) => {
-                    if (response.success) {
-                        console.log('showDove has been set successfully.');
-                    } else {
-                        console.error('Failed to set showDove.');
-                    }
-                });
+                chrome.runtime.sendMessage({ action: 'reload' });
             }
         });
 

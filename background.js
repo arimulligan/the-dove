@@ -40,9 +40,6 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     if (message.action === 'reload') {
         reloadPage();
-        sendResponse({ success: true });
-        // Indicate that the response will be sent asynchronously
-        return true;
     }
 });
 
