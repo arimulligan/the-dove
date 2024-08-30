@@ -401,16 +401,16 @@ function loadRestTab() {
 function loadSettings() {
     const toggleInteractionElem = document.getElementById('onOrOff');
     if (toggleInteractionElem.innerHTML == '') {
-        chrome.storage.local.get('showDove', (result) => {
-            const showDove = result.showDove ?? true;
-            toggleInteractionElem.innerHTML = showDove ? 'Turn Off' : 'Turn On';
+        chrome.storage.local.get('showDoveIndefinitely', (result) => {
+            const showDoveIndefinitely = result.showDoveIndefinitely ?? true;
+            toggleInteractionElem.innerHTML = showDoveIndefinitely ? 'Turn Off' : 'Turn On';
         });
     }
     toggleInteractionElem.addEventListener('click', () => {
-        chrome.storage.local.get('showDove', (result) => {
-            const showDove = result.showDove ?? true;
-            toggleInteractionElem.innerHTML = showDove ? 'Turn Off' : 'Turn On';
-            chrome.storage.local.set({ showDove: !showDove }, () => {
+        chrome.storage.local.get('showDoveIndefinitely', (result) => {
+            const showDoveIndefinitely = result.showDoveIndefinitely ?? true;
+            toggleInteractionElem.innerHTML = showDoveIndefinitely ? 'Turn Off' : 'Turn On';
+            chrome.storage.local.set({ showDoveIndefinitely: !showDoveIndefinitely }, () => {
                 reloadPage();
             });
         });
