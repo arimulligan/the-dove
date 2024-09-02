@@ -33,27 +33,7 @@ function getQuote() {
                 ]
             }
         ],
-        "Facts": [
-            {
-                "Work" : [
-                    "UNSW researchers reveal: lack of mental activity doubles brain shrinkage in old age!",
-                    "Hey, you've been working for __ hours! Well done.",
-                    "You finished a task! Nice dude.",
-                    "Lazy people (aka couch potatoes) are unbearable... this you?",
-                    "Is your task overwhelmingly big? Consider splitting them up into smaller tasks.",
-                    "Is your environment too distracting? Move away...",
-                    "Still stressed? Try going for a brisk walk (it annoyingly works)."
-                ]
-            },
-            {
-                "Rest" : [
-                    "Hey, you've been resting for __ hours! Your brain thanks you.",
-                    "Is your brain super tired? Yeah you're in REST mode for a reason! Take a nap.",
-                    "Some people are weirdly workaholic... are you one of them?"
-                ]
-            }
-        ],
-        "Questions": [
+        "Questions/Statements": [
             {
                 "Work": [
                     {"Textbox": [
@@ -61,21 +41,31 @@ function getQuote() {
                         "What's worrying you?"
                     ]},
                     {"RadioButton": [
-                        {"How much longer will you be procrastinating for?": "Fine I'll stop., 5 more minutes!, 15 minutes, 30 minutes"},
-                        {"Is this site productive or for resting?": "Productive, Resting"}
+                        {"How much longer will you be procrastinating for?": "I'm working!, I'll rest for 5 minutes, I'll rest for 15 minutes, I'll rest for 30 minutes"},
+                        {"Is this site distracting? Did you want to block it?": "Yes please, 10 more minutes then block it, No thanks"}
+                    ]},
+                    {"Button": [
+                        {"UNSW researchers reveal: lack of mental activity doubles brain shrinkage in old age!": "Ew!"},
+                        {"Hey, I see you've been productive! Well done.": "Why thank you"},
+                        {"Couch potatoes are unbearable... this you?": "Haha"},
+                        {"Is your environment too distracting? Move away...": "Mmhmm"},
+                        {"Still stressed? Try going for a brisk walk (it annoyingly works).": "If you insist!"},
                     ]}
                 ]
             },
             {
                 "Rest": [
-                    "Wow __ minutes of rest... are you up for some work?"
+                    `Wow __ minutes of rest... are you up for some work?`,
+                    "Hey, you've been resting nicely! Your brain thanks you.",
+                    "Is your brain super tired? Yeah you're in REST mode for a reason! Take a nap.",
+                    "Some people are weirdly workaholic... are you one of them?"
                 ]
             }
         ]
     };
 
-    // Randomly pick a category (e.g., "Bible Verses", "Facts", "Questions")
-    const category = Object.keys(quotes)[Math.floor(Math.random() * 3)];
+    // Randomly pick a category (e.g., "Bible Verses", "Facts/Questions")
+    const category = Object.keys(quotes)[Math.floor(Math.random() * 2)];
     const subCategories = quotes[category];
 
     // TODO: change this to getting specific category depending on what the user is doing.
@@ -85,7 +75,7 @@ function getQuote() {
     // Get the quotes list for the chosen sub-category
     const statements = subCategories[subCategoryIndex][subCategory];
 
-    if (category === "Questions") {
+    if (category === "Questions/Statements") {
         const questionObj = statements[Math.floor(Math.random() * statements.length)];
         const questionType = Object.keys(questionObj)[0];
         const questions = questionObj[questionType];
@@ -98,11 +88,18 @@ function getQuote() {
         } else if (questionType === 'RadioButton') {
             const question = Object.keys(questions)[0];
             const options = Object.values(questions[question])[0];
-            console.log(options)
             return {
                 questionType: 'RadioButton',
                 questionText: Object.keys(questions[question])[0],
                 options: options.split(", ")
+            };
+        } else if (questionType === 'Button') {
+            const question = Object.keys(questions)[0];
+            const option = Object.values(questions[question])[0];
+            return {
+                questionType: 'Button',
+                questionText: Object.keys(questions[question])[0],
+                options: option
             };
         }
     } else {
@@ -129,6 +126,12 @@ function getDoveTextContainer() {
         const input = document.createElement('input');
         input.type = 'text';
         input.placeholder = 'Type away...';
+        input.addEventListener('keypress', (event)=> {
+            if (event.key === 'Enter'){
+                questionElement.textContent = 'Thanks for your response!\nPress up arrow for me to fly away.'
+                input.style.display = 'none';
+            }
+        })
         doveTextContainer.appendChild(input);
     } else if (questionType === 'RadioButton') {
         // Create radio buttons for the user to choose from
@@ -143,6 +146,36 @@ function getDoveTextContainer() {
             doveTextContainer.appendChild(label);
             doveTextContainer.appendChild(document.createElement('br'));
         });
+        questionElement.addEventListener('keypress', (event)=> {
+            if (event.key === 'Enter'){
+                // check if any radios have been selected
+                if ($('input[name="dove-question"]:checked').length > 0) {
+                    var selected = document.querySelector('input[name="dove-question"]:checked');
+                    const selectedChoice = selected.value.toLowerCase();
+                    if (options.length > 3) { // extending rest
+                        if (selectedChoice == "I'm working!"){
+                            questionElement.textContent = 'OK!\nPress up arrow for me to fly away.';
+                        } else {
+                            const minutes = selectedChoice.match(new RegExp("\\d+"));
+                            // TODO: change mode to rest mode, and set the timer to _ minutes.
+
+                            questionElement.textContent = `You are now in rest mode for ${minutes} minutes. Enjoy!`;
+                        }
+                    } else { // blocking sites
+                        if (selectedChoice == "Yes please"){
+                            // TODO: block the current URL indefinitely
+                        } else if (selectedChoice == "10 more minutes then block it"){
+                            // TODO: wait for 5 minutes in work mode, then block and reload the site.
+                        } else {
+                            questionElement.textContent = 'OK!\nPress up arrow for me to fly away.';;
+                        }
+                    }
+                    selected.remove();
+                }
+            }
+        })
+    } else if (questionType === 'Button') {
+        // TODO: show button user can click and then the dove flys away.
     }
     return doveTextContainer;
 }
