@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="row-container">
                             <h4>Change the reminder frequency?</h4>
                             <div class="column-container">
-                                <input id="remIntervals" type="range" min="0" max="23.75" step="0.25" style="width: 90%;" value="1.5"></input>
+                                <input id="remIntervals" type="range" min="0.25" max="23.75" step="0.25" style="width: 90%;" value="1.5"></input>
                                 <h4 id="remIntervalsValue"></h4>
                             </div>
                         </div>
