@@ -70,6 +70,7 @@ function reloadPage() {
 // for the dove reminder intervals
 const DYNAMIC_SCRIPT_ID = 'show-dove-reminders';
 let reminderTimer;
+let totalTime = 0; // TODO: Give total time in either work or rest mode to content script.
 
 async function registerContentScript(tabId) {
     // Check if the content script is already registered
