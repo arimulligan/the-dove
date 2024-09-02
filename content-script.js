@@ -116,7 +116,6 @@ function getQuote() {
 
 function getDoveTextContainer() {
     const { questionType, questionText, options } = getQuote();
-    console.log(questionText); // For debugging purposes
 
     const doveTextContainer = document.createElement('div');
     doveTextContainer.className = 'dove-text';

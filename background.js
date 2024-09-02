@@ -46,14 +46,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 function reloadPage() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (chrome.runtime.lastError) {
-            console.error('Error querying tabs:', chrome.runtime.lastError);
-            return;
-        }
         if (tabs.length > 0) {
             chrome.scripting.executeScript({
                 target: { tabId: tabs[0].id },
                 function: reloadTab
+            }, ()=> {
+                let error = chrome.runtime.lastError;
+                if (error && error.message &&
+                    !error.message.startsWith("Cannot access contents of url \"chrome") &&
+                    !error.message.startsWith("Cannot access a chrome:// URL")
+                ) {
+                    console.log(error.message);
+                }
             });
         }
     });
@@ -77,7 +81,7 @@ async function registerContentScript(tabId) {
             {
                 id: DYNAMIC_SCRIPT_ID,
                 js: ['content-script.js'],
-                matches: ['<all_urls>'],
+                matches: ['<all_urls>', , "*://*/*"],
                 runAt: 'document_end',
                 allFrames: true
             }
@@ -88,6 +92,14 @@ async function registerContentScript(tabId) {
     await chrome.scripting.executeScript({
         target: { tabId },
         files: ['content-script.js']
+    }, () => {
+        let error = chrome.runtime.lastError;
+        if (error && error.message &&
+            !error.message.startsWith("Cannot access contents of url \"chrome") &&
+            !error.message.startsWith("Cannot access a chrome:// URL")
+        ) {
+            console.log(error.message);
+        }
     });
 }
 
@@ -128,7 +140,7 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
-chrome.storage.onChanged.addListener((changes, namespace) => {
+chrome.storage.onChanged.addListener((changes) => {
     if (changes.reminderInterval) {
         setReminder(changes.reminderInterval.newValue);
     }

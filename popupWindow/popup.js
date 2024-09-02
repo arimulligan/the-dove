@@ -439,14 +439,15 @@ function loadSettings() {
 
 function reloadPage() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (chrome.runtime.lastError) {
-            console.error('Error querying tabs:', chrome.runtime.lastError);
-            return;
-        }
         if (tabs.length > 0) {
             chrome.scripting.executeScript({
                 target: { tabId: tabs[0].id },
                 function: reloadTab
+            }, ()=> {
+                if (chrome.runtime.lastError) {
+                    console.error('Error querying tabs:', chrome.runtime.lastError);
+                    return;
+                }
             });
         }
     });
