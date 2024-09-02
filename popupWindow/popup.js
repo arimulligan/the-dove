@@ -52,6 +52,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <h4 id="remIntervalsValue"></h4>
                             </div>
                         </div>
+                        <div class="row-container">
+                            <h4>Change what dove talks about?</h4>
+                            <div class="column-container" id="discussion">
+                                <label><input type="checkbox" name="toggle"><span>Bible verses</span></label>
+                                <label><input type="checkbox" name="toggle"><span>Cheeky questions</span></label>
+                            </div>
+                        </div>
                     </div>
             `
     };
@@ -435,6 +442,8 @@ function loadSettings() {
             alert('I will now fly down and remind you \nthrough quotes, verses, and sassy questions every: \n\n'+ value.textContent);
         });
     });
+
+    // TODO: add event listnener for dove discussion buttons and send info to content script.
 }
 
 function reloadPage() {
