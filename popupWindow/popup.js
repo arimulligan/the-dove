@@ -64,40 +64,71 @@ document.addEventListener('DOMContentLoaded', () => {
         settingsTab: loadSettings
     };
 
-document.querySelector('.boxes').addEventListener('click', (event) => {
+    const wrongContent = {
+        workTab: `<h2>You should be in rest mode!!</h2>`,
+        restTab: `<h2>You should be in work mode!!</h2>`,
+    };
+
+    const loadWrongContent = {
+        workTab: loadChangedWorkTab,
+        restTab: loadChangedRestTab,
+    };
+
+    document.querySelector('.boxes').addEventListener('click', (event) => {
         const button = event.target.closest('.unselected-box');
         if (button) {
             const targetPage = button.getAttribute('data-target');
-            document.getElementById('content').innerHTML = content[targetPage];
-            loadContent[targetPage]();
-
-            // Remove selected-box class from all buttons
-            document.querySelectorAll('.boxes button').forEach(btn => {
-                btn.classList.remove('selected-box');
-                btn.classList.add('unselected-box');
-            });
-
-            // Add selected-box class to the clicked button
-            button.classList.remove('unselected-box');
-            button.classList.add('selected-box');
+            if (targetPage === 'workTab' || targetPage === 'restTab') {
+                chrome.storage.sync.get('mode', (data) => {
+                    const mode = data.mode;
+                    console.error('does this work', targetPage, mode)
+                    if (mode === 'rest' && targetPage === 'workTab' ||
+                        mode === 'work' && targetPage === 'restTab'
+                    ) {
+                        changeMainContent(targetPage, wrongContent, loadWrongContent, button);
+                    }
+                });
+            }
+            changeMainContent(targetPage, content, loadContent, button);
         }
     });
 
     document.querySelector('.settings-cog').addEventListener('click', (event) => {
         const targetPage = event.target.getAttribute('data-target');
-        document.getElementById('content').innerHTML = content[targetPage];
-        loadContent.settingsTab();
+        changeMainContent(targetPage, content, loadContent, null);
+    });
 
-        document.querySelectorAll('.boxes button').forEach(btn => {
-            btn.classList.remove('selected-box');
-            btn.classList.add('unselected-box');
-        });
+    chrome.storage.onChanged.addListener((changes) => {
+        if (changes.mode) {
+            console.error('hereeee', changes.mode.newValue);
+            const currentContent = document.getElementsByClassName('selected-box')[0];
+            if (currentContent.id === 'workTab' && changes.mode.newValue === 'rest') {
+                changeMainContent('restTab', content, loadContent, null);
+            }
+            else if (currentContent.id === 'restTab' && changes.mode.newValue === 'work') {
+                changeMainContent('workTab', content, loadContent, null);
+            }
+        }
     });
 
     // load the default tab on page load
     document.getElementById('content').innerHTML = content['goalsTab'];
     loadTasks();
 });
+
+function changeMainContent(targetPage, content, loadContent, button) {
+    document.getElementById('content').innerHTML = content[targetPage];
+    loadContent[targetPage]();
+    document.querySelectorAll('.boxes button').forEach(btn => {
+        btn.classList.remove('selected-box');
+        btn.classList.add('unselected-box');
+    });
+    if (button) {
+        // Add selected-box class to the clicked button
+        button.classList.remove('unselected-box');
+        button.classList.add('selected-box');
+    }
+}
 
 // GOALS TAB
 function loadTasks() {
@@ -318,13 +349,19 @@ function doCountdownTimer() {
     const circularProgressEl = document.getElementsByClassName("circular-progress")[0];
     let circularProgress;
     let circularProgressIntervalID;
-    let totalTime = 10;
+    let totalTime = 10; // TODO: getElementById in the edit timers button.
     let timeLeft;
     let countDownIntervalID;
     let isPaused = false;
     let running = false;
 
-    startBtn.addEventListener('click', startTimer);
+    startBtn.addEventListener('click', () => {
+        startTimer();
+        chrome.storage.sync.set({ mode: 'work' }, () => {
+            totalTime = totalTime === 0 ? 'an indefinite amount of' : totalTime; // can js change from string to int?
+            alert('Started work mode! You will be working for '+ totalTime + ' minutes, and will be blocked out of all specified URLs.');
+        });
+    });
     editTimersBtn.addEventListener('click', editTimers);
 
     function startTimer() {
@@ -338,6 +375,7 @@ function doCountdownTimer() {
             if (timeLeft === 0) {
                 stopTimer();
                 countdownView.innerHTML = 'Finished';
+                chrome.storage.sync.set({ mode: 'rest' });
                 return;
             } else {
                 timeLeft = timeLeft - 1;
@@ -393,8 +431,16 @@ function doCountdownTimer() {
     }
 }
 
+function loadChangedWorkTab() {
+    // haven't done yet
+}
+
 // REST TAB
 function loadRestTab() {
+    // TODO: need to do this so that the mode variable can get changed back.
+}
+
+function loadChangedRestTab() {
     // haven't done yet
 }
 
