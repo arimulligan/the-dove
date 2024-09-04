@@ -78,8 +78,11 @@ function getQuote() {
     const category = Object.keys(quotes)[Math.floor(Math.random() * 3)];
     const subCategories = quotes[category];
 
-    // TODO: change this to getting specific category depending on what the user is doing.
-    const subCategoryIndex = 0 // Default is work.
+    // getting work or rest category depending on what mode the user is in.
+    let subCategoryIndex;
+    chrome.storage.sync.get('mode', (data) => {
+        subCategoryIndex = data.mode === 'rest' ? 1 : 0; // Default is work
+    });
     const subCategory = Object.keys(subCategories[subCategoryIndex])[0];
 
     // Get the quotes list for the chosen sub-category
