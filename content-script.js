@@ -114,7 +114,7 @@ function getQuote() {
     }
 }
 
-function getDoveTextContainer() {
+function getDoveTextContainer(flyDoveImg, risingBranchImg, flyingDoveGIFUrl) {
     const { questionType, questionText, options } = getQuote();
 
     const doveTextContainer = document.createElement('div');
@@ -131,7 +131,7 @@ function getDoveTextContainer() {
         input.placeholder = 'Type away...';
         input.addEventListener('keypress', (event)=> {
             if (event.key === 'Enter'){
-                questionElement.textContent = 'Thanks for your response!\nPress up arrow for me to fly away.'
+                questionElement.textContent = 'Thanks for your response!\nDouble click me to fly away.'
                 input.style.display = 'none';
             }
         })
@@ -157,7 +157,7 @@ function getDoveTextContainer() {
                     const selectedChoice = selected.value.toLowerCase();
                     if (options.length > 3) { // extending rest
                         if (selectedChoice == "I'm working!"){
-                            questionElement.textContent = 'OK!\nPress up arrow for me to fly away.';
+                            questionElement.textContent = 'OK!\nDouble click me to fly away.';
                         } else {
                             const minutes = selectedChoice.match(new RegExp("\\d+"));
                             // TODO: change mode to rest mode, and set the timer to _ minutes.
@@ -170,7 +170,7 @@ function getDoveTextContainer() {
                         } else if (selectedChoice == "10 more minutes then block it"){
                             // TODO: wait for 5 minutes in work mode, then block and reload the site.
                         } else {
-                            questionElement.textContent = 'OK!\nPress up arrow for me to fly away.';;
+                            questionElement.textContent = 'OK!\nDouble click me to fly away.';;
                         }
                     }
                     selected.remove();
@@ -178,7 +178,13 @@ function getDoveTextContainer() {
             }
         })
     } else if (questionType === 'Button') {
-        // TODO: show button user can click and then the dove flys away.
+        // show button user can click and then the dove flys away.
+        const button = document.createElement('button');
+        button.value = options;
+        input.addEventListener('click', (event)=> {
+            flyAway(doveTextContainer, flyDoveImg, risingBranchImg, flyingDoveGIFUrl);
+        })
+        doveTextContainer.appendChild(input);
     }
     return doveTextContainer;
 }
@@ -279,7 +285,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }`;
         document.head.appendChild(style);
 
-        const doveText = getDoveTextContainer();
+        const doveText = getDoveTextContainer(flyDoveImg, risingBranchImg, flyingDoveGIFUrl);
         flyDoveImg.addEventListener('animationend', (event) => {
             if (event.animationName == 'doveMoveDown') {
                 // Replace the flying dove GIF with the standing dove image
