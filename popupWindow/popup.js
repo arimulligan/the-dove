@@ -374,47 +374,52 @@ function doCountdownTimer(isWork) {
     let circularProgressIntervalID;
     let totalTime = 10; // TODO: getElementById in the edit timers button.
     let timeLeft;
-    let countDownIntervalID;
     let isPaused = false;
     let running = false;
 
-    startBtn.addEventListener('click', () => {
-        startTimer();
-        chrome.storage.sync.set({ mode: isWork ? 'work' : 'rest'}, () => {
-            alert('Started work mode! You will be working for '+
-                totalTime + ' minutes, and will be blocked out of all specified URLs.');
-        });
+    chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
+        if (response.timeLeft && response.totalTime) {
+            timeLeft = response.timeLeft;
+            totalTime = response.totalTime;
+            continueTimer();
+        } else {
+            startBtn.addEventListener('click', () => {
+                startTimer();
+                chrome.storage.sync.set({ mode: isWork ? 'work' : 'rest'}, () => {
+                    alert('Started work mode! You will be working for '+
+                        totalTime + ' minutes, and will be blocked out of all specified URLs.');
+                });
+            });
+        }
     });
     editTimersBtn.addEventListener('click', editTimers);
 
     function startTimer() {
-        if (countDownIntervalID === undefined && !isPaused && !running) {
-            timeLeft = totalTime;
-            startBtn.style.display = "none";
-        }
-        
-        countDownIntervalID = setInterval(() => {
-            countdownView.innerHTML = timeLeft + " minutes left";
-            if (timeLeft === 0) {
-                stopTimer();
-                countdownView.innerHTML = 'Finished';
-                chrome.storage.sync.set({ mode: isWork ? 'rest' : 'work' });
-                return;
-            } else {
-                timeLeft = timeLeft - 1;
-            }
-        }, 1000); // TODO: change to minutes
-        
+        chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: totalTime });
         running = true;
-        startCircularProgressAnimation();
+        continueTimer();
+    }
+
+    function continueTimer() {
+        startBtn.style.display = "none";
+        // Update the countdown display by requesting time left
+        chrome.runtime.onMessage.addListener((message) => {
+            if (message.cmd === 'UPDATE_TIME') {
+                timeLeft = message.timeLeft;
+                countdownView.innerHTML = timeLeft + " minutes left";
+            } else if (message.cmd === 'TIMER_FINISHED') {
+                countdownView.innerHTML = 'Finished';
+                running = false;
+                chrome.storage.sync.set({ mode: isWork ? 'rest' : 'work' });
+                stopCircularProgressAnimation();
+            }
+            startCircularProgressAnimation();
+        });
     }
 
     function stopTimer() {
-        if (countDownIntervalID !== undefined) {
-            clearInterval(countDownIntervalID);
-            countDownIntervalID = undefined;
-            stopCircularProgressAnimation();
-        }
+        chrome.runtime.sendMessage({ cmd: 'STOP_TIMER' });
+        stopCircularProgressAnimation();
     }
 
     function editTimers() {
@@ -426,7 +431,7 @@ function doCountdownTimer(isWork) {
         } else {
             isPaused = !isPaused;
             editTimersBtn.innerHTML = isPaused ? 'Resume' : 'Pause';
-            if (countDownIntervalID !== undefined) {
+            if (isPaused) {
                 stopTimer();
             } else {
                 startTimer();
@@ -471,7 +476,6 @@ function loadChangedWorkTab() {
 function loadRestTab() {
     doCountdownTimer(false);
     doBlockWebsiteButtons();
-    // TODO: need to do this so that the mode variable can get changed back.
 }
 
 function loadChangedRestTab() {
@@ -492,7 +496,7 @@ function loadSettings() {
             const showDoveIndefinitely = result.showDoveIndefinitely ?? true;
             toggleInteractionElem.innerHTML = showDoveIndefinitely ? 'Turn Off' : 'Turn On';
             chrome.storage.local.set({ showDoveIndefinitely: !showDoveIndefinitely }, () => {
-                reloadPage();
+                chrome.runtime.sendMessage({ cmd: 'RELOAD' });
             });
         });
     });
@@ -517,24 +521,4 @@ function loadSettings() {
     });
 
     // TODO: add event listnener for dove discussion buttons and send info to content script.
-}
-
-function reloadPage() {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs.length > 0) {
-            chrome.scripting.executeScript({
-                target: { tabId: tabs[0].id },
-                function: reloadTab
-            }, ()=> {
-                if (chrome.runtime.lastError) {
-                    console.error('Error querying tabs:', chrome.runtime.lastError);
-                    return;
-                }
-            });
-        }
-    });
-
-    function reloadTab() {
-        location.reload();
-    }
 }

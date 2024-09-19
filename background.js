@@ -38,17 +38,42 @@ chrome.runtime.onInstalled.addListener(() => {
 });
 
 // listens and executes all action messages
-chrome.runtime.onMessage.addListener((message) => {
-    switch (message.action) {
-        case 'reload':
-            reloadPage();
-        case 'start work':
-    
-        case 'start rest':
-    
-        
+let countdownInterval;
+let totalTime;
+let timeLeft;
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.cmd === 'START_TIMER') {
+        totalTime = request.totalTime;
+        timeLeft = totalTime;
+        startCountdown();
+    } else if (request.cmd === 'STOP_TIMER') {
+        stopCountdown();
+    } else if (request.cmd === 'GET_TIME') {
+        sendResponse({ timeLeft: timeLeft, totalTime: totalTime });
+    } else if (request.cmd === 'RELOAD') {
+        reloadPage();
     }
 });
+
+function startCountdown() {
+    stopCountdown();
+    countdownInterval = setInterval(() => {
+        if (timeLeft > 0) {
+            timeLeft--;
+            chrome.runtime.sendMessage({ cmd: 'UPDATE_TIME', timeLeft: timeLeft });
+        } else {
+            stopCountdown();
+            chrome.runtime.sendMessage({ cmd: 'TIMER_FINISHED' });
+        }
+    }, 1000); // TODO: 1000==secs, change to minutes
+}
+
+function stopCountdown() {
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+}
 
 function reloadPage() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
@@ -76,7 +101,6 @@ function reloadPage() {
 // for the dove reminder intervals
 const DYNAMIC_SCRIPT_ID = 'show-dove-reminders';
 let reminderTimer;
-let totalTime = 0; // TODO: Give total time in either work or rest mode to content script.
 
 async function registerContentScript(tabId) {
     // Check if the content script is already registered
