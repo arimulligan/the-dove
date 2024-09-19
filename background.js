@@ -37,10 +37,16 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
-// for relaoding current tab
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'reload') {
-        reloadPage();
+// listens and executes all action messages
+chrome.runtime.onMessage.addListener((message) => {
+    switch (message.action) {
+        case 'reload':
+            reloadPage();
+        case 'start work':
+    
+        case 'start rest':
+    
+        
     }
 });
 
@@ -82,7 +88,7 @@ async function registerContentScript(tabId) {
             {
                 id: DYNAMIC_SCRIPT_ID,
                 js: ['content-script.js'],
-                matches: ['<all_urls>', , "*://*/*"],
+                matches: ['<all_urls>',"*://*/*"],
                 runAt: 'document_end',
                 allFrames: true
             }
@@ -121,11 +127,13 @@ function setReminder(interval) {
     
                             chrome.tabs.sendMessage(activeTabId, { action: 'doveReminding' }, (response) => {
                                 if (chrome.runtime.lastError) {
+                                    // TODO: Change these to notifications, so the user DOES see the dove in a diff way.
                                     console.error('Probably a chrome URL I cannot interfere with...', chrome.runtime.lastError);
                                 }
                             });
                         }
                     } catch (error) {
+                        // TODO: Change these to notifications, so the user DOES see the dove in a diff way.
                         console.error('Probably a chrome URL I cannot interfere with...', error);
                     }
                 });

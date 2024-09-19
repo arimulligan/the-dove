@@ -37,7 +37,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 <input type="text" id="url" placeholder="https://www.example.com">
                 <button id="save">Save</button>
                 <button id="unblock">Unblock</button>`,
-        restTab: `<h2>Resting...</h2>`,
+        restTab: `<h2>Rest</h2>
+                <button id="editTimersBtn" class="edit-buttons">Edit Timers</button>
+                <div class="timer-container">
+                    <span class="circular-bg">
+                        <span class="circular-progress">
+                            <button id="startBtn">Start your rest</button>
+                            <h3 class="countdown"></h3>
+                        </span>
+                    </span>
+                </div>
+                <h2 style="font-size: 20px; right: 15%; top: -11%;">Keep working on sites?</h2>
+                <ul id="taskList">
+                    <div>
+                        <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
+                        <input type="text" id="taskInputBlockerHeader" placeholder="Enter word here..." draggable=false style="display: inline-block;">
+                    </div>
+                </ul>
+                <label for="url">Enter URL to Block:</label>
+                <input type="text" id="url" placeholder="https://www.example.com">
+                <button id="save">Save</button>
+                <button id="unblock">Unblock</button>`,
         settingsTab: `<h2>Settings</h2>
                     <h3 style="font-size:20px; border-bottom:5px solid #0388A6;">Interactive Dove Reminders:</h3>
                     <div class="column-container">
@@ -88,7 +108,6 @@ document.addEventListener('DOMContentLoaded', () => {
             if (targetPage === 'workTab' || targetPage === 'restTab') {
                 chrome.storage.sync.get('mode', (data) => {
                     const mode = data.mode;
-                    console.error('does this work', targetPage, mode)
                     if (mode === 'rest' && targetPage === 'workTab' ||
                         mode === 'work' && targetPage === 'restTab'
                     ) {
@@ -107,7 +126,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     chrome.storage.onChanged.addListener((changes) => {
         if (changes.mode) {
-            console.error('hereeee', changes.mode.newValue);
             const currentContent = document.getElementsByClassName('selected-box')[0];
             if (currentContent.id === 'workTab' && changes.mode.newValue === 'rest') {
                 changeMainContent('restTab', content, loadContent, null);
@@ -307,10 +325,8 @@ function makeTaskDraggable(sortableList) {
     }
 }
 
-// WORK TAB
-function loadWorkTab() {
-    doCountdownTimer();
-
+// Work and Rest Tab functions
+function doBlockWebsiteButtons() {
     document.getElementById('save').addEventListener('click', function() {
         const url = document.getElementById('url').value;
             if (url) {
@@ -349,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function doCountdownTimer() {
+function doCountdownTimer(isWork) {
     const startBtn = document.getElementById('startBtn');
     const editTimersBtn = document.getElementById('editTimersBtn');
     const countdownView = document.getElementsByClassName('countdown')[0];
@@ -364,9 +380,9 @@ function doCountdownTimer() {
 
     startBtn.addEventListener('click', () => {
         startTimer();
-        chrome.storage.sync.set({ mode: 'work' }, () => {
-            totalTime = totalTime === 0 ? 'an indefinite amount of' : totalTime; // can js change from string to int?
-            alert('Started work mode! You will be working for '+ totalTime + ' minutes, and will be blocked out of all specified URLs.');
+        chrome.storage.sync.set({ mode: isWork ? 'work' : 'rest'}, () => {
+            alert('Started work mode! You will be working for '+
+                totalTime + ' minutes, and will be blocked out of all specified URLs.');
         });
     });
     editTimersBtn.addEventListener('click', editTimers);
@@ -382,7 +398,7 @@ function doCountdownTimer() {
             if (timeLeft === 0) {
                 stopTimer();
                 countdownView.innerHTML = 'Finished';
-                chrome.storage.sync.set({ mode: 'rest' });
+                chrome.storage.sync.set({ mode: isWork ? 'rest' : 'work' });
                 return;
             } else {
                 timeLeft = timeLeft - 1;
@@ -403,6 +419,9 @@ function doCountdownTimer() {
 
     function editTimers() {
         if (!running){
+            // have a range that the user can select, and can have a 'start
+            // indefinitely' button which then changes the start button to
+            // 'end indefinite session'
 
         } else {
             isPaused = !isPaused;
@@ -438,12 +457,20 @@ function doCountdownTimer() {
     }
 }
 
+// WORK TAB
+function loadWorkTab() {
+    doCountdownTimer(true);
+    doBlockWebsiteButtons();
+}
+
 function loadChangedWorkTab() {
     // haven't done yet
 }
 
 // REST TAB
 function loadRestTab() {
+    doCountdownTimer(false);
+    doBlockWebsiteButtons();
     // TODO: need to do this so that the mode variable can get changed back.
 }
 
