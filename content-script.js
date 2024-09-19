@@ -1,4 +1,4 @@
-function getQuote() {
+function getQuote(callback) {
     // Array of quotes for the dove to say
     const quotes = {
         "Bible Verses": [
@@ -65,127 +65,132 @@ function getQuote() {
     };
 
     // Randomly pick a category (e.g., "Bible Verses", "Facts/Questions")
-    const category = Object.keys(quotes)[Math.floor(Math.random() * 2)];
+    const categories = Object.keys(quotes);
+    const category = Object.keys(quotes)[1];
     const subCategories = quotes[category];
 
     // getting work or rest category depending on what mode the user is in.
-    let subCategoryIndex;
     chrome.storage.sync.get('mode', (data) => {
-        subCategoryIndex = data.mode === 'rest' ? 1 : 0; // Default is work
-    });
-    const subCategory = Object.keys(subCategories[subCategoryIndex])[0];
+        const subCategoryIndex = (data.mode === 'rest') ? 1 : 0; // Default is work
+        if (subCategories && subCategories.length > subCategoryIndex) {
+            const subCategory = Object.keys(subCategories[subCategoryIndex])[0];
+            const statements = subCategories[subCategoryIndex][subCategory];
 
-    // Get the quotes list for the chosen sub-category
-    const statements = subCategories[subCategoryIndex][subCategory];
+            // Logic for Questions/Statements or Quotes
+            if (category === "Questions/Statements" && data.mode !== 'rest') {
+                const questionObj = statements[Math.floor(Math.random() * statements.length)];
+                const questionType = Object.keys(questionObj)[0];
+                const questions = questionObj[questionType];
 
-    if (category === "Questions/Statements") {
-        const questionObj = statements[Math.floor(Math.random() * statements.length)];
-        const questionType = Object.keys(questionObj)[0];
-        const questions = questionObj[questionType];
-
-        if (questionType === 'Textbox') {
-            return {
-                questionType: 'Textbox',
-                questionText: questions[Math.floor(Math.random() * questions.length)]
-            };
-        } else if (questionType === 'RadioButton') {
-            const question = Object.keys(questions)[0];
-            const options = Object.values(questions[question])[0];
-            return {
-                questionType: 'RadioButton',
-                questionText: Object.keys(questions[question])[0],
-                options: options.split(", ")
-            };
-        } else if (questionType === 'Button') {
-            const question = Object.keys(questions)[0];
-            const option = Object.values(questions[question])[0];
-            return {
-                questionType: 'Button',
-                questionText: Object.keys(questions[question])[0],
-                options: option
-            };
+                if (questionType === 'Textbox') {
+                    callback({
+                        questionType: 'Textbox',
+                        questionText: questions[Math.floor(Math.random() * questions.length)]
+                    });
+                } else if (questionType === 'RadioButton') {
+                    const question = Object.keys(questions)[0];
+                    const options = Object.values(questions[question])[0];
+                    callback({
+                        questionType: 'RadioButton',
+                        questionText: question,
+                        options: options // No need to split since it should already be an array?
+                    });
+                } else if (questionType === 'Button') {
+                    const question = Object.keys(questions)[0];
+                    const option = Object.values(questions[question])[0];
+                    callback({
+                        questionType: 'Button',
+                        questionText: question,
+                        options: option // Already in the right format
+                    });
+                }
+            } else {
+                const selectedStatement = statements[Math.floor(Math.random() * statements.length)];
+                callback({
+                    questionType: 'Quote',
+                    questionText: selectedStatement
+                });
+            }
+        } else {
+            console.error("Subcategory index is out of range or subCategories is invalid.");
         }
-    } else {
-        const selectedStatement = statements[Math.floor(Math.random() * statements.length)];
-        return {
-            questionType: 'Quote',
-            questionText: selectedStatement
-        };
-    }
+    });
 }
 
 function getDoveTextContainer(flyDoveImg, risingBranchImg, flyingDoveGIFUrl) {
-    const { questionType, questionText, options } = getQuote();
-
     const doveTextContainer = document.createElement('div');
     doveTextContainer.className = 'dove-text';
 
-    const questionElement = document.createElement('div');
-    questionElement.textContent = questionText;
-    doveTextContainer.appendChild(questionElement);
-
-    if (questionType === 'Textbox') {
-        // Create a textbox for the user to answer
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = 'Type away...';
-        input.addEventListener('keypress', (event)=> {
-            if (event.key === 'Enter'){
-                questionElement.textContent = 'Thanks for your response!\nDouble click me to fly away.'
-                input.style.display = 'none';
-            }
-        })
-        doveTextContainer.appendChild(input);
-    } else if (questionType === 'RadioButton') {
-        // Create radio buttons for the user to choose from
-        options.forEach(option => {
-            const label = document.createElement('label');
-            const radio = document.createElement('input');
-            radio.type = 'radio';
-            radio.name = 'dove-question';
-            radio.value = option;
-            label.appendChild(radio);
-            label.appendChild(document.createTextNode(option));
-            doveTextContainer.appendChild(label);
-            doveTextContainer.appendChild(document.createElement('br'));
-        });
-        questionElement.addEventListener('keypress', (event)=> {
-            if (event.key === 'Enter'){
-                // check if any radios have been selected
-                if ($('input[name="dove-question"]:checked').length > 0) {
-                    var selected = document.querySelector('input[name="dove-question"]:checked');
-                    const selectedChoice = selected.value.toLowerCase();
-                    if (options.length > 3) { // extending rest
-                        if (selectedChoice == "I'm working!"){
-                            questionElement.textContent = 'OK!\nDouble click me to fly away.';
-                        } else {
-                            const minutes = selectedChoice.match(new RegExp("\\d+"));
-                            // TODO: change mode to rest mode, and set the timer to _ minutes.
-
-                            questionElement.textContent = `You are now in rest mode for ${minutes} minutes. Enjoy!`;
-                        }
-                    } else { // blocking sites
-                        if (selectedChoice == "Yes please"){
-                            // TODO: block the current URL indefinitely
-                        } else if (selectedChoice == "10 more minutes then block it"){
-                            // TODO: wait for 5 minutes in work mode, then block and reload the site.
-                        } else {
-                            questionElement.textContent = 'OK!\nDouble click me to fly away.';;
-                        }
-                    }
-                    selected.remove();
+    getQuote(({ questionType, questionText, options }) => {
+        console.error(questionType, questionText, options);
+        const questionElement = document.createElement('div');
+        questionElement.textContent = questionText;
+        doveTextContainer.appendChild(questionElement);
+    
+        if (questionType === 'Textbox') {
+            // Create a textbox for the user to answer
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = 'Type away...';
+            input.addEventListener('keypress', (event)=> {
+                if (event.key === 'Enter'){
+                    questionElement.textContent = 'Thanks for your response!\nDouble click me to fly away.'
+                    input.style.display = 'none';
                 }
-            }
-        })
-    } else if (questionType === 'Button') {
-        // show button user can click and then the dove flys away.
-        const button = document.createElement('button');
-        button.value = options;
-        input.addEventListener('click', (event)=> {
-            flyAway(doveTextContainer, flyDoveImg, risingBranchImg, flyingDoveGIFUrl);
-        })
-        doveTextContainer.appendChild(input);
-    }
+            })
+            doveTextContainer.appendChild(input);
+        } else if (questionType === 'RadioButton') {
+            // Create radio buttons for the user to choose from
+            options.forEach(option => {
+                const label = document.createElement('label');
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'dove-question';
+                radio.value = option;
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(option));
+                doveTextContainer.appendChild(label);
+                doveTextContainer.appendChild(document.createElement('br'));
+            });
+            questionElement.addEventListener('keypress', (event)=> {
+                if (event.key === 'Enter'){
+                    // check if any radios have been selected
+                    if ($('input[name="dove-question"]:checked').length > 0) {
+                        var selected = document.querySelector('input[name="dove-question"]:checked');
+                        const selectedChoice = selected.value.toLowerCase();
+                        if (options.length > 3) { // extending rest
+                            if (selectedChoice == "I'm working!"){
+                                questionElement.textContent = 'OK!\nDouble click me to fly away.';
+                            } else {
+                                const minutes = selectedChoice.match(new RegExp("\\d+"));
+                                // TODO: change mode to rest mode, and set the timer to _ minutes.
+    
+                                questionElement.textContent = `You are now in rest mode for ${minutes} minutes. Enjoy!`;
+                            }
+                        } else { // blocking sites
+                            if (selectedChoice == "Yes please"){
+                                // TODO: block the current URL indefinitely
+                            } else if (selectedChoice == "10 more minutes then block it"){
+                                // TODO: wait for 5 minutes in work mode, then block and reload the site.
+                            } else {
+                                questionElement.textContent = 'OK!\nDouble click me to fly away.';;
+                            }
+                        }
+                        selected.remove();
+                    }
+                }
+            })
+        } else if (questionType === 'Button') {
+            // show button user can click and then the dove flys away.
+            const button = document.createElement('button');
+            button.value = options;
+            input.addEventListener('click', (event)=> {
+                flyAway(doveTextContainer, flyDoveImg, risingBranchImg, flyingDoveGIFUrl);
+            })
+            doveTextContainer.appendChild(input);
+        }
+    });
+    
     return doveTextContainer;
 }
 
