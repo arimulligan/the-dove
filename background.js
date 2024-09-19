@@ -42,7 +42,7 @@ let countdownInterval;
 let totalTime;
 let timeLeft;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.cmd === 'START_TIMER') {
+    if (request.cmd === 'START_TIMER') { // OR Editing the timer
         totalTime = request.totalTime;
         timeLeft = totalTime;
         startCountdown();
@@ -133,8 +133,11 @@ async function registerContentScript(tabId) {
         }
     });
 }
-
+const debug = true; // make dove turn up faster.
 function setReminder(interval) {
+    if (debug) {
+        interval = 10000; // 10 seconds
+    }
     if (reminderTimer) {
         clearInterval(reminderTimer);
     }
