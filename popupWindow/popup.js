@@ -384,6 +384,7 @@ function doCountdownTimer(isWork) {
             continueTimer();
         } else {
             startBtn.addEventListener('click', () => {
+                timeLeft = totalTime;
                 startTimer();
                 chrome.storage.sync.set({ mode: isWork ? 'Work' : 'Rest'}, () => {
                     alert('Started work mode! You will be working for '+
@@ -412,8 +413,8 @@ function doCountdownTimer(isWork) {
                 running = false;
                 stopCircularProgressAnimation();
             }
-            startCircularProgressAnimation();
         });
+        startCircularProgressAnimation();
     }
 
     function stopTimer() {
