@@ -100,7 +100,7 @@ function startCountdown() {
             });
             chrome.runtime.sendMessage({ cmd: 'TIMER_FINISHED' });
         }
-    }, 1000); // TODO: 1000==secs, change to minutes
+    }, 60000); // 1000 == 1 secs, 60000 == 1 minute
 }
 
 function stopCountdown() {
