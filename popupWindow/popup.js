@@ -108,8 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (targetPage === 'workTab' || targetPage === 'restTab') {
                 chrome.storage.sync.get('mode', (data) => {
                     const mode = data.mode;
-                    if (mode === 'rest' && targetPage === 'workTab' ||
-                        mode === 'work' && targetPage === 'restTab'
+                    if (mode === 'Rest' && targetPage === 'workTab' ||
+                        mode === 'Work' && targetPage === 'restTab'
                     ) {
                         changeMainContent(targetPage, wrongContent, loadWrongContent, button);
                     }
@@ -127,10 +127,10 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.onChanged.addListener((changes) => {
         if (changes.mode) {
             const currentContent = document.getElementsByClassName('selected-box')[0];
-            if (currentContent.id === 'workTab' && changes.mode.newValue === 'rest') {
+            if (currentContent.id === 'workTab' && changes.mode.newValue === 'Rest') {
                 changeMainContent('restTab', content, loadContent, null);
             }
-            else if (currentContent.id === 'restTab' && changes.mode.newValue === 'work') {
+            else if (currentContent.id === 'restTab' && changes.mode.newValue === 'Work') {
                 changeMainContent('workTab', content, loadContent, null);
             }
         }
@@ -329,7 +329,7 @@ function makeTaskDraggable(sortableList) {
 function doBlockWebsiteButtons() {
     document.getElementById('save').addEventListener('click', function() {
         const url = document.getElementById('url').value;
-            if (url) {
+        if (url) {
             chrome.storage.sync.set({ blockedUrl: url }, function() {
                 chrome.declarativeNetRequest.updateDynamicRules({
                 removeRuleIds: [1],
@@ -340,7 +340,7 @@ function doBlockWebsiteButtons() {
                     condition: { urlFilter: url, resourceTypes: ["main_frame"] }
                 }]
                 }, function() {
-                alert('URL saved and will be blocked.');
+                    alert('URL saved and will be blocked.');
                 });
             });
         }
@@ -385,7 +385,7 @@ function doCountdownTimer(isWork) {
         } else {
             startBtn.addEventListener('click', () => {
                 startTimer();
-                chrome.storage.sync.set({ mode: isWork ? 'work' : 'rest'}, () => {
+                chrome.storage.sync.set({ mode: isWork ? 'Work' : 'Rest'}, () => {
                     alert('Started work mode! You will be working for '+
                         totalTime + ' minutes, and will be blocked out of all specified URLs.');
                 });
@@ -410,7 +410,6 @@ function doCountdownTimer(isWork) {
             } else if (message.cmd === 'TIMER_FINISHED') {
                 countdownView.innerHTML = 'Finished';
                 running = false;
-                chrome.storage.sync.set({ mode: isWork ? 'rest' : 'work' });
                 stopCircularProgressAnimation();
             }
             startCircularProgressAnimation();
@@ -520,5 +519,5 @@ function loadSettings() {
         });
     });
 
-    // TODO: add event listnener for dove discussion buttons and send info to content script.
+    // TODO: add event listnener for dove talks about (verses / questions) and send info to content script.
 }
