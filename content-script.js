@@ -1,4 +1,15 @@
-function getQuote() {
+/**
+ * Returns an integer random number between min (included) and max (included)
+ * @param {*} min 
+ * @param {*} max 
+ * @returns random number
+ * @link https://stackoverflow.com/questions/1527803/generating-random-whole-numbers-in-javascript-in-a-specific-range
+ */
+function randomInteger(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
+
+function getQuote(callback) {
     // Array of quotes for the dove to say
     const quotes = {
         "Bible Verses": [
@@ -33,121 +44,165 @@ function getQuote() {
                 ]
             }
         ],
-        "Facts": [
-            {
-                "Work" : [
-                    "UNSW researchers reveal: lack of mental activity doubles brain shrinkage in old age!",
-                    "Hey, you've been working for __ hours! Well done.",
-                    "You finished a task! Nice dude.",
-                    "Lazy people (aka couch potatoes) are unbearable... this you?",
-                    "Is your task overwhelmingly big? Consider splitting them up into smaller tasks.",
-                    "Is your environment too distracting? Move away...",
-                    "Still stressed? Try going for a brisk walk (it annoyingly works)."
-                ]
-            },
-            {
-                "Rest" : [
-                    "Hey, you've been resting for __ hours! Your brain thanks you.",
-                    "Is your brain super tired? Yeah you're in REST mode for a reason! Take a nap.",
-                    "Some people are weirdly workaholic... are you one of them?"
-                ]
-            }
-        ],
-        "Questions": [
+        "Questions/Statements": [
             {
                 "Work": [
                     {"Textbox": [
                         "Need to memorize something? Explain it to me here in your own words.",
                         "What's worrying you?"
                     ]},
-                    {"RadioButton": [
-                        {"How much longer will you be procrastinating for?": "Fine I'll stop., 5 more minutes!, 15 minutes, 30 minutes"},
-                        {"Is this site productive or for resting?": "Productive, Resting"}
-                    ]}
+                    {"RadioButton": {
+                        "How much longer will you be procrastinating for?": "I'm working!, I'll rest for 5 minutes, I'll rest for 15 minutes, I'll rest for 30 minutes",
+                        "Is this site distracting? Did you want to block it?": "Yes please, No thanks"
+                    }},
+                    {"Button": {
+                        "UNSW researchers reveal: lack of mental activity doubles brain shrinkage in old age!": "Ew!",
+                        "Hey, I see you've been productive! Well done.": "Why thank you",
+                        "Couch potatoes are unbearable... this you?": "Haha",
+                        "Is your environment too distracting? Move away...": "Mmhmm",
+                        "Still stressed? Try going for a brisk walk (it annoyingly works).": "If you insist!",
+                    }}
                 ]
             },
             {
                 "Rest": [
-                    "Wow __ minutes of rest... are you up for some work?"
+                    "Hey, you've been resting nicely! Your brain thanks you.",
+                    "Is your brain super tired? Yeah you're in REST mode for a reason! Take a nap.",
+                    "Some people are weirdly workaholic... are you one of them?"
                 ]
             }
         ]
     };
 
-    // Randomly pick a category (e.g., "Bible Verses", "Facts", "Questions")
-    const category = Object.keys(quotes)[Math.floor(Math.random() * 3)];
-    const subCategories = quotes[category];
+    const category = "Questions/Statements"; // TODO: get this from settings.
 
     // getting work or rest category depending on what mode the user is in.
-    let subCategoryIndex;
     chrome.storage.sync.get('mode', (data) => {
-        subCategoryIndex = data.mode === 'rest' ? 1 : 0; // Default is work
-    });
-    const subCategory = Object.keys(subCategories[subCategoryIndex])[0];
-
-    // Get the quotes list for the chosen sub-category
-    const statements = subCategories[subCategoryIndex][subCategory];
-
-    if (category === "Questions") {
-        const questionObj = statements[Math.floor(Math.random() * statements.length)];
-        const questionType = Object.keys(questionObj)[0];
-        const questions = questionObj[questionType];
-
-        if (questionType === 'Textbox') {
-            return {
-                questionType: 'Textbox',
-                questionText: questions[Math.floor(Math.random() * questions.length)]
-            };
-        } else if (questionType === 'RadioButton') {
-            const question = Object.keys(questions)[0];
-            const options = Object.values(questions[question])[0];
-            console.log(options)
-            return {
-                questionType: 'RadioButton',
-                questionText: Object.keys(questions[question])[0],
-                options: options.split(", ")
-            };
+        let modeInt = 1;
+        let mode = "Rest"; // default is rest
+        if (data.mode !== undefined) {
+            modeInt = data.mode === 'Rest' ? 1 : 0;
+            mode = data.mode;
         }
-    } else {
-        const selectedStatement = statements[Math.floor(Math.random() * statements.length)];
-        return {
-            questionType: 'Quote',
-            questionText: selectedStatement
-        };
-    }
+        const specificQuotes = quotes[category][modeInt][mode];
+        if (category === "Questions/Statements" && mode === 'Work') {
+            const randQuestionTypes = randomInteger(0, 2);
+            const questionsWorkType = specificQuotes[randQuestionTypes];
+
+            if (questionsWorkType.hasOwnProperty("Textbox")) {
+                const textBoxLen = questionsWorkType["Textbox"].length - 1;
+                const randTextBoxText = questionsWorkType["Textbox"][randomInteger(0, textBoxLen)]
+                callback({
+                    questionType: "Textbox",
+                    questionText: randTextBoxText
+                });
+            } else if (questionsWorkType.hasOwnProperty('RadioButton')) {
+                const radioButton = questionsWorkType["RadioButton"];
+                const radioKeys = Object.keys(radioButton);
+                const randomKey = radioKeys[randomInteger(0, radioKeys.length - 1)];
+                callback({
+                    questionType: "RadioButton",
+                    questionText: randomKey,
+                    options: radioButton[randomKey].split(", ")
+                });
+            } else if (questionsWorkType.hasOwnProperty('Button')) {
+                const buttonData = questionsWorkType["Button"];
+                const buttonKeys = Object.keys(buttonData);
+                const randomKey = buttonKeys[randomInteger(0, buttonKeys.length - 1)];
+                callback({
+                    questionType: 'Button',
+                    questionText: randomKey,
+                    options: buttonData[randomKey]
+                });
+            }
+        } else {
+            const otherQuotesLen = specificQuotes.length - 1;
+            const otherQuotesText = specificQuotes[randomInteger(0, otherQuotesLen)]
+            callback({
+                questionType: 'Quote',
+                questionText: otherQuotesText
+            });
+        }
+    });
 }
 
-function getDoveTextContainer() {
-    const { questionType, questionText, options } = getQuote();
-    console.log(questionText); // For debugging purposes
-
+function getDoveTextContainer(flyDoveImg, risingBranchImg, flyingDoveGIFUrl) {
     const doveTextContainer = document.createElement('div');
     doveTextContainer.className = 'dove-text';
 
-    const questionElement = document.createElement('div');
-    questionElement.textContent = questionText;
-    doveTextContainer.appendChild(questionElement);
-
-    if (questionType === 'Textbox') {
-        // Create a textbox for the user to answer
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.placeholder = 'Type away...';
-        doveTextContainer.appendChild(input);
-    } else if (questionType === 'RadioButton') {
-        // Create radio buttons for the user to choose from
-        options.forEach(option => {
-            const label = document.createElement('label');
-            const radio = document.createElement('input');
-            radio.type = 'radio';
-            radio.name = 'dove-question';
-            radio.value = option;
-            label.appendChild(radio);
-            label.appendChild(document.createTextNode(option));
-            doveTextContainer.appendChild(label);
-            doveTextContainer.appendChild(document.createElement('br'));
-        });
-    }
+    getQuote(({ questionType, questionText, options }) => {
+        const questionElement = document.createElement('div');
+        questionElement.textContent = questionText;
+        doveTextContainer.appendChild(questionElement);
+    
+        if (questionType === 'Textbox') {
+            // Create a textbox for the user to answer
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.placeholder = 'Type away...';
+            input.addEventListener('keypress', (event)=> {
+                if (event.key === 'Enter'){
+                    questionElement.textContent = 'Thanks for your response!\nDouble click me to fly away.'
+                    input.style.display = 'none';
+                }
+            })
+            doveTextContainer.appendChild(input);
+        } else if (questionType === 'RadioButton') {
+            // Create radio buttons for the user to choose from
+            options.forEach(option => {
+                const label = document.createElement('label');
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'dove-question';
+                radio.value = option;
+                label.appendChild(radio);
+                label.appendChild(document.createTextNode(option));
+                doveTextContainer.appendChild(label);
+                doveTextContainer.appendChild(document.createElement('br'));
+            });
+            doveTextContainer.addEventListener('dblclick', ()=> {
+                // check if any radios have been selected
+                let checkRadio = document.querySelector('input[name="dove-question"]:checked');
+                if (checkRadio != null) {
+                    const selectedChoice = checkRadio.value;
+                    if (options.length > 3) { // extending rest
+                        if (selectedChoice == "I'm working!"){
+                            questionElement.textContent = 'OK!\nDouble click me to fly away.';
+                        } else {
+                            const minutes = selectedChoice.match(new RegExp("\\d+"));
+                            // change mode to rest mode, and set the timer to _ minutes.
+                            chrome.storage.sync.set({ mode: 'Rest' });
+                            chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: minutes });
+                            questionElement.textContent = `You are now in rest mode for ${minutes} minutes. Enjoy!`;
+                        }
+                    } else {
+                        if (selectedChoice == "Yes please"){
+                            // block the current URL indefinitely
+                            chrome.runtime.sendMessage({ cmd: 'BLOCK_CURRENT_URL' });
+                            questionElement.textContent = 'Blocked! The page will close in 5 seconds.';;
+                            chrome.runtime.sendMessage({ cmd: 'CLOSE_TAB', milliseconds: 5000 });
+                        } else {
+                            questionElement.textContent = 'OK!\nDouble click me to fly away.';
+                        }
+                    }
+                    const radios = doveTextContainer.querySelectorAll('input[type="radio"]');
+                    radios.forEach(radio => {
+                        radio.parentNode.remove();
+                    });
+                }
+            })
+        } else if (questionType === 'Button') {
+            // show button user can click and then the dove flys away.
+            const button = document.createElement('button');
+            button.innerText = options;
+            button.style = 'popupWindow/popup.css';
+            button.addEventListener('click', (event)=> {
+                flyAway(doveTextContainer, flyDoveImg, risingBranchImg, flyingDoveGIFUrl);
+            })
+            doveTextContainer.appendChild(button);
+        }
+    });
+    
     return doveTextContainer;
 }
 
@@ -180,11 +235,11 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const risingBranchImg = document.createElement('img');
         risingBranchImg.src = standingBranchUrl;
         risingBranchImg.style.position = 'fixed';
-        risingBranchImg.style.left = '70%';
+        risingBranchImg.style.left = '65%';
         risingBranchImg.style.width = '400px';
         risingBranchImg.style.height = '250px';
         risingBranchImg.style.zIndex = '999'; // below the dove
-        risingBranchImg.style.top = '68%';
+        risingBranchImg.style.bottom = '0%';
         risingBranchImg.style.animation = 'branchMoveUp 5s linear';
         risingBranchImg.title = 'Double click to soar away!'
 
@@ -199,27 +254,27 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const style = document.createElement('style');
         style.innerHTML = `
             @keyframes doveMoveDown {
-                0% { top: -200px; }
-                100% { top: 55%; }
+                0% { bottom: 120%; }
+                100% { bottom: 15%; }
             }
             @keyframes doveMoveUp {
-                0% { top: 55%; }
-                100% { top: -200px; }
+                0% { bottom: 15%; }
+                100% { bottom: 120%; }
             }
             @keyframes branchMoveUp {
-                0% { top: 100%; }
-                100% { top: 68%; }
+                0% { bottom: -20%; }
+                100% { bottom: 0%%; }
             }
             @keyframes branchMoveDown {
-                0% { top: 68%; }
-                100% { top: 100%; }
+                0% { bottom: 0%; }
+                100% { bottom: -20%; }
             }
             #The-Dove-Extension-Area {
                 .dove-text {
-                    width: 200px;
+                    width: 20%;
                     position: fixed;
                     left: 60%;
-                    top: 50%;
+                    bottom: 25%;
                     color: white;
                     background-color: #04668c;
                     padding: 20px;
@@ -247,13 +302,13 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             }`;
         document.head.appendChild(style);
 
-        const doveText = getDoveTextContainer();
+        const doveText = getDoveTextContainer(flyDoveImg, risingBranchImg, flyingDoveGIFUrl);
         flyDoveImg.addEventListener('animationend', (event) => {
             if (event.animationName == 'doveMoveDown') {
                 // Replace the flying dove GIF with the standing dove image
                 flyDoveImg.src = standingDoveUrl;
                 flyDoveImg.style.animation = '';
-                flyDoveImg.style.top = '61%';
+                flyDoveImg.style.bottom = '15%';
                 flyDoveImg.style.width = '100px';
                 flyDoveImg.style.height = '100px';
                 flyDoveImg.style.left = '80%';
@@ -265,11 +320,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 risingBranchImg.style.display = 'none';
             }
         });
-
-        // Set a timeout to make the dove fly away after a while
-        setTimeout(() => {
-            flyAway(doveText, flyDoveImg, risingBranchImg, flyingDoveGIFUrl);
-        }, 7000); // TODO: it's only 7 seconds timeout for debugging
 
         // to fly away
         flyDoveImg.addEventListener('dblclick', ()=> {
@@ -291,7 +341,7 @@ function flyAway(doveText, flyDoveImg, risingBranchImg, flyingDoveGIFUrl) {
 
     flyDoveImg.src = flyingDoveGIFUrl;
     flyDoveImg.style.animation = 'doveMoveUp 5s linear';
-    flyDoveImg.style.left = '75%';
+    flyDoveImg.style.bottom = '15%';
     flyDoveImg.style.width = '200px';
     flyDoveImg.style.height = '200px';
 }

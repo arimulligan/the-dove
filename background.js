@@ -30,30 +30,100 @@ chrome.runtime.onInstalled.addListener(() => {
                 });
             } else if (changes.blockedUrl?.oldValue && !changes.blockedUrl.newValue) {
                 chrome.declarativeNetRequest.updateDynamicRules({
-                removeRuleIds: [1]
+                    removeRuleIds: [1]
                 });
             }
         }
     });
 });
 
-// for relaoding current tab
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
-    if (message.action === 'reload') {
+function blockCurrentURL() {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+        const url = tabs[0].url
+        if (url) {
+            chrome.storage.sync.set({ blockedUrl: url }, function() {
+                chrome.declarativeNetRequest.updateDynamicRules({
+                removeRuleIds: [1],
+                addRules: [{
+                    id: 1,
+                    priority: 1,
+                    action: { type: "block" },
+                    condition: { urlFilter: url, resourceTypes: ["main_frame"] }
+                }]
+                });
+            });
+        }
+    });
+}
+
+function closeCurrentTab(milliseconds) {
+    setTimeout(() => {
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            chrome.tabs.remove(tabs[0].id);
+        });  
+    }, milliseconds);
+}
+
+// listens and executes all action messages
+let countdownInterval;
+let totalTime;
+let timeLeft;
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.cmd === 'START_TIMER') { // OR Editing the timer
+        totalTime = request.totalTime;
+        timeLeft = totalTime;
+        startCountdown();
+    } else if (request.cmd === 'STOP_TIMER') {
+        stopCountdown();
+    } else if (request.cmd === 'GET_TIME') {
+        sendResponse({ timeLeft: timeLeft, totalTime: totalTime });
+    } else if (request.cmd === 'RELOAD') {
         reloadPage();
+    } else if (request.cmd === 'BLOCK_CURRENT_URL') {
+        blockCurrentURL();
+    } else if (request.cmd === 'CLOSE_TAB') {
+        closeCurrentTab(request.milliseconds);
     }
 });
 
+function startCountdown() {
+    stopCountdown();
+    countdownInterval = setInterval(() => {
+        if (timeLeft > 0) {
+            timeLeft--;
+            chrome.runtime.sendMessage({ cmd: 'UPDATE_TIME', timeLeft: timeLeft });
+        } else {
+            stopCountdown();
+            chrome.storage.sync.get('mode', (data) => {
+                const mode = data.mode;
+                chrome.storage.sync.set({ mode: mode === 'Work' ? 'Rest' : 'Work' });
+            });
+            chrome.runtime.sendMessage({ cmd: 'TIMER_FINISHED' });
+        }
+    }, 1000); // TODO: 1000==secs, change to minutes
+}
+
+function stopCountdown() {
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+}
+
 function reloadPage() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (chrome.runtime.lastError) {
-            console.error('Error querying tabs:', chrome.runtime.lastError);
-            return;
-        }
         if (tabs.length > 0) {
             chrome.scripting.executeScript({
                 target: { tabId: tabs[0].id },
                 function: reloadTab
+            }, ()=> {
+                let error = chrome.runtime.lastError;
+                if (error && error.message &&
+                    !error.message.startsWith("Cannot access contents of url \"chrome") &&
+                    !error.message.startsWith("Cannot access a chrome:// URL")
+                ) {
+                    console.log(error.message);
+                }
             });
         }
     });
@@ -77,7 +147,7 @@ async function registerContentScript(tabId) {
             {
                 id: DYNAMIC_SCRIPT_ID,
                 js: ['content-script.js'],
-                matches: ['<all_urls>'],
+                matches: ['<all_urls>',"*://*/*"],
                 runAt: 'document_end',
                 allFrames: true
             }
@@ -88,10 +158,21 @@ async function registerContentScript(tabId) {
     await chrome.scripting.executeScript({
         target: { tabId },
         files: ['content-script.js']
+    }, () => {
+        let error = chrome.runtime.lastError;
+        if (error && error.message &&
+            !error.message.startsWith("Cannot access contents of url \"chrome") &&
+            !error.message.startsWith("Cannot access a chrome:// URL")
+        ) {
+            console.log(error.message);
+        }
     });
 }
-
+const debug = true; // make dove turn up faster.
 function setReminder(interval) {
+    if (debug) {
+        interval = 10000; // 10 seconds
+    }
     if (reminderTimer) {
         clearInterval(reminderTimer);
     }
@@ -105,14 +186,10 @@ function setReminder(interval) {
                         if (tabs.length > 0) {
                             const activeTabId = tabs[0].id;
                             await registerContentScript(activeTabId); // Ensure content script is injected
-    
-                            chrome.tabs.sendMessage(activeTabId, { action: 'doveReminding' }, (response) => {
-                                if (chrome.runtime.lastError) {
-                                    console.error('Probably a chrome URL I cannot interfere with...', chrome.runtime.lastError);
-                                }
-                            });
+                            chrome.tabs.sendMessage(activeTabId, { action: 'doveReminding' });
                         }
                     } catch (error) {
+                        // TODO: Change these to notifications, so the user DOES see the dove in a diff way.
                         console.error('Probably a chrome URL I cannot interfere with...', error);
                     }
                 });
@@ -128,7 +205,7 @@ chrome.runtime.onInstalled.addListener(() => {
     });
 });
 
-chrome.storage.onChanged.addListener((changes, namespace) => {
+chrome.storage.onChanged.addListener((changes) => {
     if (changes.reminderInterval) {
         setReminder(changes.reminderInterval.newValue);
     }

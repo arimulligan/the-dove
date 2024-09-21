@@ -37,7 +37,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 <input type="text" id="url" placeholder="https://www.example.com">
                 <button id="save">Save</button>
                 <button id="unblock">Unblock</button>`,
-        restTab: `<h2>Resting...</h2>`,
+        restTab: `<h2>Rest</h2>
+                <button id="editTimersBtn" class="edit-buttons">Edit Timers</button>
+                <div class="timer-container">
+                    <span class="circular-bg">
+                        <span class="circular-progress">
+                            <button id="startBtn">Start your rest</button>
+                            <h3 class="countdown"></h3>
+                        </span>
+                    </span>
+                </div>
+                <h2 style="font-size: 20px; right: 15%; top: -11%;">Keep working on sites?</h2>
+                <ul id="taskList">
+                    <div>
+                        <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
+                        <input type="text" id="taskInputBlockerHeader" placeholder="Enter word here..." draggable=false style="display: inline-block;">
+                    </div>
+                </ul>
+                <label for="url">Enter URL to Block:</label>
+                <input type="text" id="url" placeholder="https://www.example.com">
+                <button id="save">Save</button>
+                <button id="unblock">Unblock</button>`,
         settingsTab: `<h2>Settings</h2>
                     <h3 style="font-size:20px; border-bottom:5px solid #0388A6;">Interactive Dove Reminders:</h3>
                     <div class="column-container">
@@ -48,8 +68,15 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="row-container">
                             <h4>Change the reminder frequency?</h4>
                             <div class="column-container">
-                                <input id="remIntervals" type="range" min="0" max="23.75" step="0.25" style="width: 90%;" value="1.5"></input>
+                                <input id="remIntervals" type="range" min="0.25" max="23.75" step="0.25" style="width: 90%;" value="1.5"></input>
                                 <h4 id="remIntervalsValue"></h4>
+                            </div>
+                        </div>
+                        <div class="row-container">
+                            <h4>Change what dove talks about?</h4>
+                            <div class="column-container" id="discussion">
+                                <label><input type="checkbox" name="toggle"><span>Bible verses</span></label>
+                                <label><input type="checkbox" name="toggle"><span>Cheeky questions</span></label>
                             </div>
                         </div>
                     </div>
@@ -81,9 +108,8 @@ document.addEventListener('DOMContentLoaded', () => {
             if (targetPage === 'workTab' || targetPage === 'restTab') {
                 chrome.storage.sync.get('mode', (data) => {
                     const mode = data.mode;
-                    console.error('does this work', targetPage, mode)
-                    if (mode === 'rest' && targetPage === 'workTab' ||
-                        mode === 'work' && targetPage === 'restTab'
+                    if (mode === 'Rest' && targetPage === 'workTab' ||
+                        mode === 'Work' && targetPage === 'restTab'
                     ) {
                         changeMainContent(targetPage, wrongContent, loadWrongContent, button);
                     }
@@ -100,12 +126,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     chrome.storage.onChanged.addListener((changes) => {
         if (changes.mode) {
-            console.error('hereeee', changes.mode.newValue);
             const currentContent = document.getElementsByClassName('selected-box')[0];
-            if (currentContent.id === 'workTab' && changes.mode.newValue === 'rest') {
+            if (currentContent.id === 'workTab' && changes.mode.newValue === 'Rest') {
                 changeMainContent('restTab', content, loadContent, null);
             }
-            else if (currentContent.id === 'restTab' && changes.mode.newValue === 'work') {
+            else if (currentContent.id === 'restTab' && changes.mode.newValue === 'Work') {
                 changeMainContent('workTab', content, loadContent, null);
             }
         }
@@ -300,13 +325,11 @@ function makeTaskDraggable(sortableList) {
     }
 }
 
-// WORK TAB
-function loadWorkTab() {
-    doCountdownTimer();
-
+// Work and Rest Tab functions
+function doBlockWebsiteButtons() {
     document.getElementById('save').addEventListener('click', function() {
         const url = document.getElementById('url').value;
-            if (url) {
+        if (url) {
             chrome.storage.sync.set({ blockedUrl: url }, function() {
                 chrome.declarativeNetRequest.updateDynamicRules({
                 removeRuleIds: [1],
@@ -317,7 +340,7 @@ function loadWorkTab() {
                     condition: { urlFilter: url, resourceTypes: ["main_frame"] }
                 }]
                 }, function() {
-                alert('URL saved and will be blocked.');
+                    alert('URL saved and will be blocked.');
                 });
             });
         }
@@ -342,7 +365,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 
-function doCountdownTimer() {
+function doCountdownTimer(isWork) {
     const startBtn = document.getElementById('startBtn');
     const editTimersBtn = document.getElementById('editTimersBtn');
     const countdownView = document.getElementsByClassName('countdown')[0];
@@ -351,56 +374,63 @@ function doCountdownTimer() {
     let circularProgressIntervalID;
     let totalTime = 10; // TODO: getElementById in the edit timers button.
     let timeLeft;
-    let countDownIntervalID;
     let isPaused = false;
     let running = false;
 
-    startBtn.addEventListener('click', () => {
-        startTimer();
-        chrome.storage.sync.set({ mode: 'work' }, () => {
-            totalTime = totalTime === 0 ? 'an indefinite amount of' : totalTime; // can js change from string to int?
-            alert('Started work mode! You will be working for '+ totalTime + ' minutes, and will be blocked out of all specified URLs.');
-        });
+    chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
+        if (response.timeLeft && response.totalTime) {
+            timeLeft = response.timeLeft;
+            totalTime = response.totalTime;
+            continueTimer();
+        } else {
+            startBtn.addEventListener('click', () => {
+                startTimer();
+                chrome.storage.sync.set({ mode: isWork ? 'Work' : 'Rest'}, () => {
+                    alert('Started work mode! You will be working for '+
+                        totalTime + ' minutes, and will be blocked out of all specified URLs.');
+                });
+            });
+        }
     });
     editTimersBtn.addEventListener('click', editTimers);
 
     function startTimer() {
-        if (countDownIntervalID === undefined && !isPaused && !running) {
-            timeLeft = totalTime;
-            startBtn.style.display = "none";
-        }
-        
-        countDownIntervalID = setInterval(() => {
-            countdownView.innerHTML = timeLeft + " minutes left";
-            if (timeLeft === 0) {
-                stopTimer();
-                countdownView.innerHTML = 'Finished';
-                chrome.storage.sync.set({ mode: 'rest' });
-                return;
-            } else {
-                timeLeft = timeLeft - 1;
-            }
-        }, 1000); // TODO: change to minutes
-        
+        chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: totalTime });
         running = true;
-        startCircularProgressAnimation();
+        continueTimer();
+    }
+
+    function continueTimer() {
+        startBtn.style.display = "none";
+        // Update the countdown display by requesting time left
+        chrome.runtime.onMessage.addListener((message) => {
+            if (message.cmd === 'UPDATE_TIME') {
+                timeLeft = message.timeLeft;
+                countdownView.innerHTML = timeLeft + " minutes left";
+            } else if (message.cmd === 'TIMER_FINISHED') {
+                countdownView.innerHTML = 'Finished';
+                running = false;
+                stopCircularProgressAnimation();
+            }
+            startCircularProgressAnimation();
+        });
     }
 
     function stopTimer() {
-        if (countDownIntervalID !== undefined) {
-            clearInterval(countDownIntervalID);
-            countDownIntervalID = undefined;
-            stopCircularProgressAnimation();
-        }
+        chrome.runtime.sendMessage({ cmd: 'STOP_TIMER' });
+        stopCircularProgressAnimation();
     }
 
     function editTimers() {
         if (!running){
+            // have a range that the user can select, and can have a 'start
+            // indefinitely' button which then changes the start button to
+            // 'end indefinite session'
 
         } else {
             isPaused = !isPaused;
             editTimersBtn.innerHTML = isPaused ? 'Resume' : 'Pause';
-            if (countDownIntervalID !== undefined) {
+            if (isPaused) {
                 stopTimer();
             } else {
                 startTimer();
@@ -431,13 +461,20 @@ function doCountdownTimer() {
     }
 }
 
+// WORK TAB
+function loadWorkTab() {
+    doCountdownTimer(true);
+    doBlockWebsiteButtons();
+}
+
 function loadChangedWorkTab() {
     // haven't done yet
 }
 
 // REST TAB
 function loadRestTab() {
-    // TODO: need to do this so that the mode variable can get changed back.
+    doCountdownTimer(false);
+    doBlockWebsiteButtons();
 }
 
 function loadChangedRestTab() {
@@ -458,7 +495,7 @@ function loadSettings() {
             const showDoveIndefinitely = result.showDoveIndefinitely ?? true;
             toggleInteractionElem.innerHTML = showDoveIndefinitely ? 'Turn Off' : 'Turn On';
             chrome.storage.local.set({ showDoveIndefinitely: !showDoveIndefinitely }, () => {
-                reloadPage();
+                chrome.runtime.sendMessage({ cmd: 'RELOAD' });
             });
         });
     });
@@ -481,23 +518,6 @@ function loadSettings() {
             alert('I will now fly down and remind you \nthrough quotes, verses, and sassy questions every: \n\n'+ value.textContent);
         });
     });
-}
 
-function reloadPage() {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (chrome.runtime.lastError) {
-            console.error('Error querying tabs:', chrome.runtime.lastError);
-            return;
-        }
-        if (tabs.length > 0) {
-            chrome.scripting.executeScript({
-                target: { tabId: tabs[0].id },
-                function: reloadTab
-            });
-        }
-    });
-
-    function reloadTab() {
-        location.reload();
-    }
+    // TODO: add event listnener for dove talks about (verses / questions) and send info to content script.
 }

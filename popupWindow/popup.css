@@ -290,4 +290,30 @@ button#redirectBtn {
     justify-content: center;
     flex-direction: column;
     margin-top: 3px;
+    width: 100%;
+}
+
+/* Settings' Fancy Checkboxes */
+#discussion label {
+    border-radius:4px;
+    border:3px solid #8C5C4A;
+}
+
+#discussion label span {
+    text-align:center;
+    display:block;
+    background-color:#F2A007;
+    color:#8C5C4A;
+    font-weight:900;
+    width: 100%;
+}
+
+#discussion label input {
+    position:absolute;
+    top:-20px;
+}
+
+#discussion input:checked + span {
+    background-color:#8C5C4A;
+    color:#F2A007;
 }
