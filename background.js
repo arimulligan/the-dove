@@ -30,12 +30,39 @@ chrome.runtime.onInstalled.addListener(() => {
                 });
             } else if (changes.blockedUrl?.oldValue && !changes.blockedUrl.newValue) {
                 chrome.declarativeNetRequest.updateDynamicRules({
-                removeRuleIds: [1]
+                    removeRuleIds: [1]
                 });
             }
         }
     });
 });
+
+function blockCurrentURL() {
+    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+        const url = tabs[0].url
+        if (url) {
+            chrome.storage.sync.set({ blockedUrl: url }, function() {
+                chrome.declarativeNetRequest.updateDynamicRules({
+                removeRuleIds: [1],
+                addRules: [{
+                    id: 1,
+                    priority: 1,
+                    action: { type: "block" },
+                    condition: { urlFilter: url, resourceTypes: ["main_frame"] }
+                }]
+                });
+            });
+        }
+    });
+}
+
+function closeCurrentTab(milliseconds) {
+    setTimeout(() => {
+        chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+            chrome.tabs.remove(tabs[0].id);
+        });  
+    }, milliseconds);
+}
 
 // listens and executes all action messages
 let countdownInterval;
@@ -52,6 +79,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ timeLeft: timeLeft, totalTime: totalTime });
     } else if (request.cmd === 'RELOAD') {
         reloadPage();
+    } else if (request.cmd === 'BLOCK_CURRENT_URL') {
+        blockCurrentURL();
+    } else if (request.cmd === 'CLOSE_TAB') {
+        closeCurrentTab(request.milliseconds);
     }
 });
 
@@ -63,6 +94,10 @@ function startCountdown() {
             chrome.runtime.sendMessage({ cmd: 'UPDATE_TIME', timeLeft: timeLeft });
         } else {
             stopCountdown();
+            chrome.storage.sync.get('mode', (data) => {
+                const mode = data.mode;
+                chrome.storage.sync.set({ mode: mode === 'Work' ? 'Rest' : 'Work' });
+            });
             chrome.runtime.sendMessage({ cmd: 'TIMER_FINISHED' });
         }
     }, 1000); // TODO: 1000==secs, change to minutes
@@ -151,13 +186,7 @@ function setReminder(interval) {
                         if (tabs.length > 0) {
                             const activeTabId = tabs[0].id;
                             await registerContentScript(activeTabId); // Ensure content script is injected
-    
-                            chrome.tabs.sendMessage(activeTabId, { action: 'doveReminding' }, (response) => {
-                                if (chrome.runtime.lastError) {
-                                    // TODO: Change these to notifications, so the user DOES see the dove in a diff way.
-                                    console.error('Probably a chrome URL I cannot interfere with...', chrome.runtime.lastError);
-                                }
-                            });
+                            chrome.tabs.sendMessage(activeTabId, { action: 'doveReminding' });
                         }
                     } catch (error) {
                         // TODO: Change these to notifications, so the user DOES see the dove in a diff way.
