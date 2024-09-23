@@ -20,10 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="timer-container">
                     <span class="circular-bg">
                         <span class="circular-progress">
-                            <button id="editTimersBtn" class="edit-buttons">Edit Timers</button>
-                            <input id="editTimerRange" type="range" min="0.25" max="23.75" step="0.25" style="display:none"></input>
-                            <p id="showTimeEdits" style="display:none"></p>
-                            <button id="startBtn" class="edit-buttons">Start Timer</button>
+                        <button id="startBtn" class="edit-buttons">Start Timer</button>
+                            <input id="editTimerRange" type="range" min="0.167" max="6" step="0.167" value="0.833"></input>
+                            <p id="showTimeEdits"></p>
                             <h3 class="countdown"></h3>
                         </span>
                     </span>
@@ -43,10 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <div class="timer-container">
                     <span class="circular-bg">
                         <span class="circular-progress">
-                            <button id="editTimersBtn" class="edit-buttons">Edit Timers</button>
-                            <input id="editTimerRange" type="range" min="0.25" max="23.75" step="0.25" style="display:none"></input>
-                            <p id="showTimeEdits" style="display:none"></p>
-                            <button id="startBtn" class="edit-buttons">Start Timer</button>
+                        <button id="startBtn" class="edit-buttons">Start Timer</button>
+                            <input id="editTimerRange" type="range" min="0.167" max="6" step="0.167" value="0.833"></input>
+                            <p id="showTimeEdits"></p>
                             <h3 class="countdown"></h3>
                         </span>
                     </span>
@@ -87,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
             `
     };
 
-    // <button id="redirectBtn" class="edit-buttons">Redirect websites</button> to go below edittimersBtn (if i have time)
+    // <button id="redirectBtn" class="edit-buttons">Redirect websites</button> to go below edittimerBtn (if i have time)
     const loadContent = {
         goalsTab: loadTasks,
         workTab: loadWorkTab,
@@ -131,11 +129,13 @@ document.addEventListener('DOMContentLoaded', () => {
     chrome.storage.onChanged.addListener((changes) => {
         if (changes.mode) {
             const currentContent = document.getElementsByClassName('selected-box')[0];
-            if (currentContent.id === 'workTab' && changes.mode.newValue === 'Rest') {
-                changeMainContent('restTab', content, loadContent, null);
+            if (currentContent.id === 'workIcon' && changes.mode.newValue === 'Rest') {
+                const button = document.getElementById('restIcon');
+                changeMainContent('restTab', content, loadContent, button);
             }
-            else if (currentContent.id === 'restTab' && changes.mode.newValue === 'Work') {
-                changeMainContent('workTab', content, loadContent, null);
+            else if (currentContent.id === 'restIcon' && changes.mode.newValue === 'Work') {
+                const button = document.getElementById('workIcon');
+                changeMainContent('workTab', content, loadContent, button);
             }
         }
     });
@@ -371,54 +371,42 @@ document.addEventListener('DOMContentLoaded', function() {
 
 function doCountdownTimer(isWork) {
     const startBtn = document.getElementById('startBtn');
-    const editTimersBtn = document.getElementById('editTimersBtn');
     const countdownView = document.getElementsByClassName('countdown')[0];
     const circularProgressEl = document.getElementsByClassName("circular-progress")[0];
     const editTimerRange = document.getElementById('editTimerRange');
-    let showTimeEdits = document.getElementById('showTimeEdits');
+    const showTimeEdits = document.getElementById('showTimeEdits');
     let circularProgress;
     let circularProgressIntervalID;
-    let totalTime = 10; // TODO: getElementById in the edit timers button.
+    let totalTime = 10; // debug: need to change to default 50.
     let timeLeft;
-    let editMode = false;
 
     chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
         if (response.timeLeft && response.totalTime) {
             timeLeft = response.timeLeft;
             totalTime = response.totalTime;
             continueTimer();
-        } else if (response.totalTime === 0) {
-            renderIndefiniteTimer();
-        } else {
-            startBtn.addEventListener('click', () => {
-                const mode = isWork ? 'Work' : 'Rest';
-                if (editMode) {
-                    chrome.storage.sync.set({ mode: mode }, () => {
-                        alert(`Started ${mode} mode! You will be ${mode}ing indefinitely, while being blocked out of all specified URLs.`);
-                    });
-                    chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: 0 });
-                    renderIndefiniteTimer();
-                } else {
-                    timeLeft = totalTime;
-                    startTimer();
-                    chrome.storage.sync.set({ mode: mode }, () => {
-                        alert(`Started ${mode} mode! You will be ${mode}ing for `+
-                            totalTime + ' minutes, and will be blocked out of all specified URLs.');
-                    });
-                }
-            });
         }
     });
-    editTimersBtn.addEventListener('click', editTimers);
+    startBtn.addEventListener('click', () => {
+        const mode = isWork ? 'Work' : 'Rest';
+        timeLeft = totalTime;
+        startTimer();
+        chrome.storage.sync.set({ mode: mode }, () => {
+            alert(`Started ${mode} mode! You will be ${mode}ing for `+
+                totalTime + ' minutes, and will be blocked out of all specified URLs.');
+        });
+    });
 
-    function renderIndefiniteTimer() {
-        showTimeEdits = document.getElementById('showTimeEdits');
-        showTimeEdits.style.display = 'block';
-        showTimeEdits.innerHTML = 'Working Indefinitely...';
-        startBtn.style.display = 'none';
-        editTimersBtn.style.display = 'none';
-        editTimerRange.style.display = 'none';
-    }
+    // editing the timer 
+    showTimeEdits.textContent = "0 hr(s), and 50 mins.";
+    editTimerRange.addEventListener("input", (event) => {
+        const time = getMinutesHours(event);
+        showTimeEdits.textContent = time[0]+ " hr(s), and "+time[1]+" mins.";
+    });
+    editTimerRange.addEventListener("mouseup", (event) => {
+        const time = getMinutesHours(event);
+        totalTime = (time[0] * 60) + time[1]; // Convert hours to seconds
+    });
 
     function startTimer() {
         chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: totalTime });
@@ -427,38 +415,16 @@ function doCountdownTimer(isWork) {
 
     function continueTimer() {
         startBtn.style.display = "none";
+        showTimeEdits.style.display = 'none';
+        editTimerRange.style.display = 'none';
         // Update the countdown display by requesting time left
         chrome.runtime.onMessage.addListener((message) => {
             if (message.cmd === 'UPDATE_TIME') {
                 timeLeft = message.timeLeft;
                 countdownView.innerHTML = timeLeft + " minutes left";
-            } else if (message.cmd === 'TIMER_FINISHED') {
-                countdownView.innerHTML = 'Finished';
-                stopCircularProgressAnimation();
             }
         });
         startCircularProgressAnimation();
-    }
-
-    function editTimers() {
-        editMode = !editMode;
-        if (editMode) {
-            startBtn.innerHTML = 'No Timer'
-            editTimersBtn.innerHTML = 'Done';
-            showTimeEdits.style.display = 'block';
-            editTimerRange.style.display = 'block';
-        } else {
-            startBtn.innerHTML = 'Start Timer';
-            editTimersBtn.innerHTML = 'Edit Timers';
-            showTimeEdits.style.display = 'none';
-            editTimerRange.style.display = 'none';
-        }
-        // have a range that the user can select, and can have a 'start
-        // indefinitely' button which then changes the start button to
-        // 'end indefinite session'
-
-        
-
     }
 
     function startCircularProgressAnimation() {
@@ -474,13 +440,6 @@ function doCountdownTimer(isWork) {
             circularProgressEl.style.background = `conic-gradient(#0388A6 ${circularProgress}deg, #04668C 0deg)`;
         }
         }, 50);
-    }
-    
-    function stopCircularProgressAnimation() {
-        clearInterval(circularProgressIntervalID);
-        if (!editMode) {
-            circularProgressEl.style.background = `conic-gradient(#0388A6 0deg, #04668C 0deg)`;
-        }
     }
 }
 
@@ -525,15 +484,10 @@ function loadSettings() {
 
     const value = document.querySelector("#remIntervalsValue");
     const input = document.querySelector("#remIntervals");
-    value.textContent = "1 hour(s), and 30 minutes.";
+    value.textContent = "1 hour(s), and 30 mins.";
     input.addEventListener("input", (event) => {
-        const decimalHours = event.target.value;
-        const n = new Date(0,0);
-        n.setMinutes(+Math.round(decimalHours * 60)); 
-        const hours = n.getHours()
-        const minutes = n.getMinutes()
-
-        value.textContent = hours+ " hour(s), and "+minutes+" minutes.";
+        const time = getMinutesHours(event);
+        value.textContent = time[0]+ " hour(s), and "+time[1]+" mins.";
     });
     input.addEventListener("mouseup", (event) => {
         const reminderInterval = event.target.value * 3600000; // Convert hours to milliseconds
@@ -543,4 +497,13 @@ function loadSettings() {
     });
 
     // TODO: add event listnener for dove talks about (verses / questions) and send info to content script.
+}
+
+function getMinutesHours(event) {
+    const decimalHours = event.target.value;
+    const n = new Date(0,0);
+    n.setMinutes(+Math.round(decimalHours * 60)); 
+    const hours = n.getHours();
+    const minutes = n.getMinutes();
+    return [hours, minutes];
 }

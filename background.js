@@ -72,9 +72,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.cmd === 'START_TIMER') {
         totalTime = request.totalTime;
         timeLeft = totalTime;
-        if (request.totalTime !== 0) { // if not indefinitely
-            startCountdown();
-        }
+        startCountdown();
     } else if (request.cmd === 'GET_TIME') {
         sendResponse({ timeLeft: timeLeft, totalTime: totalTime });
     } else if (request.cmd === 'RELOAD') {
@@ -98,7 +96,6 @@ function startCountdown() {
                 const mode = data.mode;
                 chrome.storage.sync.set({ mode: mode === 'Work' ? 'Rest' : 'Work' });
             });
-            chrome.runtime.sendMessage({ cmd: 'TIMER_FINISHED' });
         }
     }, 1000); // 1000 == 1 secs, 60000 == 1 minute
 }
