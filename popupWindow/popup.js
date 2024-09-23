@@ -31,11 +31,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <ul id="taskList">
                     <div>
                         <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
-                        <input type="text" id="taskInputBlockerHeader" placeholder="Enter word here..." draggable=false style="display: inline-block;">
+                        <input type="text" id="url" placeholder="Enter word here..." draggable=false style="display: inline-block;">
                     </div>
                 </ul>
-                <label for="url">Enter URL to Block:</label>
-                <input type="text" id="url" placeholder="https://www.example.com">
                 <button id="save">Save</button>
                 <button id="unblock">Unblock</button>`,
         restTab: `<h2>Rest</h2>
@@ -53,11 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <ul id="taskList">
                     <div>
                         <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
-                        <input type="text" id="taskInputBlockerHeader" placeholder="Enter word here..." draggable=false style="display: inline-block;">
+                        <input type="text" id="url" placeholder="Enter word here..." draggable=false style="display: inline-block;">
                     </div>
                 </ul>
-                <label for="url">Enter URL to Block:</label>
-                <input type="text" id="url" placeholder="https://www.example.com">
                 <button id="save">Save</button>
                 <button id="unblock">Unblock</button>`,
         settingsTab: `<h2>Settings</h2>
@@ -330,44 +326,58 @@ function makeTaskDraggable(sortableList) {
 }
 
 // Work and Rest Tab functions
-function doBlockWebsiteButtons() {
-    document.getElementById('save').addEventListener('click', function() {
-        const url = document.getElementById('url').value;
-        if (url) {
-            chrome.storage.sync.set({ blockedUrl: url }, function() {
-                chrome.declarativeNetRequest.updateDynamicRules({
-                removeRuleIds: [1],
-                addRules: [{
-                    id: 1,
-                    priority: 1,
-                    action: { type: "block" },
-                    condition: { urlFilter: url, resourceTypes: ["main_frame"] }
-                }]
-                }, function() {
-                    alert('URL saved and will be blocked.');
-                });
-            });
-        }
-    });
-    
-    document.getElementById('unblock').addEventListener('click', function() {
-        chrome.storage.sync.remove('blockedUrl', function() {
-            chrome.declarativeNetRequest.updateDynamicRules({
-                removeRuleIds: [1]
-            }, function() {
-                alert('URL unblocked.');
-            });
+function doBlockWebsiteButtons(mode) {
+    // loading blocked websites
+    chrome.storage.sync.get(["blockedSites"+mode], function (result) {
+        const blockedSites = result.blockedSites || [];
+        let index = 0;
+        blockedSites.forEach((site, i) => {
+            addWebsiteToDOM(site, index);
+            index = i;
+        });
+
+        // adding a new blocked website
+        document.getElementById('url').addEventListener('keydown', (event) =>{ 
+            if (event.key === 'Enter') {
+                const urlInput = document.getElementById('url').value;
+                if (urlInput.trim() !== '') {
+                    index++;
+                    chrome.runtime.sendMessage({ cmd: 'BLOCK_OR_UNBLOCK_URL', 
+                        site: urlInput, index: null, mode: mode });
+                    addWebsiteToDOM(urlInput, index);
+                    urlInput = '';
+                }
+            }
         });
     });
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    chrome.storage.sync.get('blockedUrl', function(data) {
-        if (data.blockedUrl && document.getElementById('url')) {
-            document.getElementById('url').value = data.blockedUrl;
-        }
-    });
-});
+    function addWebsiteToDOM(site, index) {
+        const taskList = document.querySelector('#taskList');
+        const listItem = document.createElement('li');
+        const taskSpan = document.createElement('span');
+        taskSpan.id = index;
+        taskSpan.textContent = site;
+        taskSpan.addEventListener('dragstart', (e) => {
+            e.preventDefault(); // make text not draggable (bug fix)
+        });
+        
+        const removeSite = document.createElement('button');
+        removeSite.id = 'deleteButton';
+        removeSite.onclick = () => {
+            chrome.runtime.sendMessage({ cmd: 'BLOCK_OR_UNBLOCK_URL', 
+                site: site, index: index, mode: mode });
+            taskList.removeChild(listItem);
+        };
+
+        const prettyBulletPoint = document.createElement('div');
+        prettyBulletPoint.id = 'bulletPoint';
+
+        listItem.appendChild(prettyBulletPoint);
+        listItem.appendChild(taskSpan);
+        listItem.appendChild(removeSite);
+        taskList.insertBefore(listItem, taskList.nextSibling);
+    }
+}
 
 function doCountdownTimer(isWork) {
     const startBtn = document.getElementById('startBtn');
@@ -446,7 +456,7 @@ function doCountdownTimer(isWork) {
 // WORK TAB
 function loadWorkTab() {
     doCountdownTimer(true);
-    doBlockWebsiteButtons();
+    doBlockWebsiteButtons("Work");
 }
 
 function loadChangedWorkTab() {
@@ -456,7 +466,7 @@ function loadChangedWorkTab() {
 // REST TAB
 function loadRestTab() {
     doCountdownTimer(false);
-    doBlockWebsiteButtons();
+    doBlockWebsiteButtons("Rest");
 }
 
 function loadChangedRestTab() {

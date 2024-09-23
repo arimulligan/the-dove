@@ -1,57 +1,43 @@
 // for URL blocking
-chrome.runtime.onInstalled.addListener(() => {
-    chrome.storage.sync.get("blockedUrl", function(data) {
-        const blockedUrl = data.blockedUrl || "";
-        if (blockedUrl) {
-            chrome.declarativeNetRequest.updateDynamicRules({
-                removeRuleIds: [1],
-                addRules: [{
-                id: 1,
-                priority: 1,
-                action: { type: "block" },
-                condition: { urlFilter: blockedUrl, resourceTypes: ["main_frame"] }
-                }]
-            });
+function updateBlockedSites(website, index, mode) {
+    let blockedMode;
+    if (mode === 'Rest') {
+        blockedMode = 'blockedSitesRest';
+    } else {
+        blockedMode = 'blockedSitesWork';
+    }
+    chrome.storage.sync.get([blockedMode], function (result) {
+        const blockedSites = result[blockedMode] || [];
+        // Remove existing listener if present
+        chrome.webRequest.onBeforeRequest.removeListener(blockRequest);
+    
+        // add or remove a website
+        if (index !== null) {
+            blockedSites.splice(index, 1);
+        } else {
+            blockedSites.push(website);
         }
+        chrome.storage.sync.set({ blockedMode: blockedSites });
+    
+        chrome.webRequest.onBeforeRequest.addListener(
+            blockRequest,
+            { urls: blockedSites },
+            ["blocking"]
+        );
     });
+}
 
-    chrome.storage.onChanged.addListener(function(changes, area) {
-        if (area === "sync") {
-            if (changes.blockedUrl?.newValue) {
-                const newUrl = changes.blockedUrl.newValue;
-                chrome.declarativeNetRequest.updateDynamicRules({
-                    removeRuleIds: [1],
-                    addRules: [{
-                        id: 1,
-                        priority: 1,
-                        action: { type: "block" },
-                        condition: { urlFilter: newUrl, resourceTypes: ["main_frame"] }
-                    }]
-                });
-            } else if (changes.blockedUrl?.oldValue && !changes.blockedUrl.newValue) {
-                chrome.declarativeNetRequest.updateDynamicRules({
-                    removeRuleIds: [1]
-                });
-            }
-        }
-    });
-});
+// Function to block requests
+function blockRequest(details) {
+    console.log(`Blocking: ${details.url}`);
+    return { cancel: true };
+}
 
-function blockCurrentURL() {
+function blockCurrentURL(mode) {
     chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
         const url = tabs[0].url
         if (url) {
-            chrome.storage.sync.set({ blockedUrl: url }, function() {
-                chrome.declarativeNetRequest.updateDynamicRules({
-                removeRuleIds: [1],
-                addRules: [{
-                    id: 1,
-                    priority: 1,
-                    action: { type: "block" },
-                    condition: { urlFilter: url, resourceTypes: ["main_frame"] }
-                }]
-                });
-            });
+            updateBlockedSites(url, null, mode);
         }
     });
 }
@@ -77,8 +63,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ timeLeft: timeLeft, totalTime: totalTime });
     } else if (request.cmd === 'RELOAD') {
         reloadPage();
+    } else if (request.cmd === 'BLOCK_OR_UNBLOCK_URL') {
+        updateBlockedSites(request.site, request.index, request.mode);
     } else if (request.cmd === 'BLOCK_CURRENT_URL') {
-        blockCurrentURL();
+        blockCurrentURL(request.mode);
     } else if (request.cmd === 'CLOSE_TAB') {
         closeCurrentTab(request.milliseconds);
     }
