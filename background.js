@@ -69,12 +69,12 @@ let countdownInterval;
 let totalTime;
 let timeLeft;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-    if (request.cmd === 'START_TIMER') { // OR Editing the timer
+    if (request.cmd === 'START_TIMER') {
         totalTime = request.totalTime;
         timeLeft = totalTime;
-        startCountdown();
-    } else if (request.cmd === 'STOP_TIMER') {
-        stopCountdown();
+        if (request.totalTime !== 0) { // if not indefinitely
+            startCountdown();
+        }
     } else if (request.cmd === 'GET_TIME') {
         sendResponse({ timeLeft: timeLeft, totalTime: totalTime });
     } else if (request.cmd === 'RELOAD') {
@@ -100,7 +100,7 @@ function startCountdown() {
             });
             chrome.runtime.sendMessage({ cmd: 'TIMER_FINISHED' });
         }
-    }, 60000); // 1000 == 1 secs, 60000 == 1 minute
+    }, 1000); // 1000 == 1 secs, 60000 == 1 minute
 }
 
 function stopCountdown() {
@@ -159,16 +159,13 @@ async function registerContentScript(tabId) {
         target: { tabId },
         files: ['content-script.js']
     }, () => {
-        let error = chrome.runtime.lastError;
-        if (error && error.message &&
-            !error.message.startsWith("Cannot access contents of url \"chrome") &&
-            !error.message.startsWith("Cannot access a chrome:// URL")
-        ) {
-            console.log(error.message);
+        if (chrome.runtime.lastError) {
+            console.log(chrome.runtime.lastError.message);
         }
     });
 }
-const debug = true; // make dove turn up faster.
+
+const debug = false; // make dove turn up faster.
 function setReminder(interval) {
     if (debug) {
         interval = 10000; // 10 seconds

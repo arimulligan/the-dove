@@ -17,16 +17,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 </ul>
                 <h4>Remember: Double click the dove or branch to make them fly away...</h4>`,
         workTab: `<h2>Work</h2>
-                <button id="editTimersBtn" class="edit-buttons">Edit Timers</button>
                 <div class="timer-container">
                     <span class="circular-bg">
                         <span class="circular-progress">
-                            <button id="startBtn">Start working</button>
+                            <button id="editTimersBtn" class="edit-buttons">Edit Timers</button>
+                            <input id="editTimerRange" type="range" min="0.25" max="23.75" step="0.25" style="display:none"></input>
+                            <p id="showTimeEdits" style="display:none"></p>
+                            <button id="startBtn" class="edit-buttons">Start Timer</button>
                             <h3 class="countdown"></h3>
                         </span>
                     </span>
                 </div>
-                <h2 style="font-size: 20px; right: 15%; top: -11%;">Distracted on certain sites?</h2>
+                <h2 style="font-size: 20px;">Distracted on certain sites?</h2>
                 <ul id="taskList">
                     <div>
                         <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
@@ -38,16 +40,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <button id="save">Save</button>
                 <button id="unblock">Unblock</button>`,
         restTab: `<h2>Rest</h2>
-                <button id="editTimersBtn" class="edit-buttons">Edit Timers</button>
                 <div class="timer-container">
                     <span class="circular-bg">
                         <span class="circular-progress">
-                            <button id="startBtn">Start your rest</button>
+                            <button id="editTimersBtn" class="edit-buttons">Edit Timers</button>
+                            <input id="editTimerRange" type="range" min="0.25" max="23.75" step="0.25" style="display:none"></input>
+                            <p id="showTimeEdits" style="display:none"></p>
+                            <button id="startBtn" class="edit-buttons">Start Timer</button>
                             <h3 class="countdown"></h3>
                         </span>
                     </span>
                 </div>
-                <h2 style="font-size: 20px; right: 15%; top: -11%;">Keep working on sites?</h2>
+                <h2 style="font-size: 20px;">Keep working on sites?</h2>
                 <ul id="taskList">
                     <div>
                         <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
@@ -370,34 +374,54 @@ function doCountdownTimer(isWork) {
     const editTimersBtn = document.getElementById('editTimersBtn');
     const countdownView = document.getElementsByClassName('countdown')[0];
     const circularProgressEl = document.getElementsByClassName("circular-progress")[0];
+    const editTimerRange = document.getElementById('editTimerRange');
+    let showTimeEdits = document.getElementById('showTimeEdits');
     let circularProgress;
     let circularProgressIntervalID;
     let totalTime = 10; // TODO: getElementById in the edit timers button.
     let timeLeft;
-    let isPaused = false;
-    let running = false;
+    let editMode = false;
 
     chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
         if (response.timeLeft && response.totalTime) {
             timeLeft = response.timeLeft;
             totalTime = response.totalTime;
             continueTimer();
+        } else if (response.totalTime === 0) {
+            renderIndefiniteTimer();
         } else {
             startBtn.addEventListener('click', () => {
-                timeLeft = totalTime;
-                startTimer();
-                chrome.storage.sync.set({ mode: isWork ? 'Work' : 'Rest'}, () => {
-                    alert('Started work mode! You will be working for '+
-                        totalTime + ' minutes, and will be blocked out of all specified URLs.');
-                });
+                const mode = isWork ? 'Work' : 'Rest';
+                if (editMode) {
+                    chrome.storage.sync.set({ mode: mode }, () => {
+                        alert(`Started ${mode} mode! You will be ${mode}ing indefinitely, while being blocked out of all specified URLs.`);
+                    });
+                    chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: 0 });
+                    renderIndefiniteTimer();
+                } else {
+                    timeLeft = totalTime;
+                    startTimer();
+                    chrome.storage.sync.set({ mode: mode }, () => {
+                        alert(`Started ${mode} mode! You will be ${mode}ing for `+
+                            totalTime + ' minutes, and will be blocked out of all specified URLs.');
+                    });
+                }
             });
         }
     });
     editTimersBtn.addEventListener('click', editTimers);
 
+    function renderIndefiniteTimer() {
+        showTimeEdits = document.getElementById('showTimeEdits');
+        showTimeEdits.style.display = 'block';
+        showTimeEdits.innerHTML = 'Working Indefinitely...';
+        startBtn.style.display = 'none';
+        editTimersBtn.style.display = 'none';
+        editTimerRange.style.display = 'none';
+    }
+
     function startTimer() {
         chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: totalTime });
-        running = true;
         continueTimer();
     }
 
@@ -410,33 +434,31 @@ function doCountdownTimer(isWork) {
                 countdownView.innerHTML = timeLeft + " minutes left";
             } else if (message.cmd === 'TIMER_FINISHED') {
                 countdownView.innerHTML = 'Finished';
-                running = false;
                 stopCircularProgressAnimation();
             }
         });
         startCircularProgressAnimation();
     }
 
-    function stopTimer() {
-        chrome.runtime.sendMessage({ cmd: 'STOP_TIMER' });
-        stopCircularProgressAnimation();
-    }
-
     function editTimers() {
-        if (!running){
-            // have a range that the user can select, and can have a 'start
-            // indefinitely' button which then changes the start button to
-            // 'end indefinite session'
-
+        editMode = !editMode;
+        if (editMode) {
+            startBtn.innerHTML = 'No Timer'
+            editTimersBtn.innerHTML = 'Done';
+            showTimeEdits.style.display = 'block';
+            editTimerRange.style.display = 'block';
         } else {
-            isPaused = !isPaused;
-            editTimersBtn.innerHTML = isPaused ? 'Resume' : 'Pause';
-            if (isPaused) {
-                stopTimer();
-            } else {
-                startTimer();
-            }
+            startBtn.innerHTML = 'Start Timer';
+            editTimersBtn.innerHTML = 'Edit Timers';
+            showTimeEdits.style.display = 'none';
+            editTimerRange.style.display = 'none';
         }
+        // have a range that the user can select, and can have a 'start
+        // indefinitely' button which then changes the start button to
+        // 'end indefinite session'
+
+        
+
     }
 
     function startCircularProgressAnimation() {
@@ -456,7 +478,7 @@ function doCountdownTimer(isWork) {
     
     function stopCircularProgressAnimation() {
         clearInterval(circularProgressIntervalID);
-        if (!isPaused) {
+        if (!editMode) {
             circularProgressEl.style.background = `conic-gradient(#0388A6 0deg, #04668C 0deg)`;
         }
     }
