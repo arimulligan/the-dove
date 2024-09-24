@@ -1,43 +1,46 @@
 // for URL blocking
-function updateBlockedSites(website, index, mode) {
-    let blockedMode;
-    if (mode === 'Rest') {
-        blockedMode = 'blockedSitesRest';
-    } else {
-        blockedMode = 'blockedSitesWork';
-    }
-    chrome.storage.sync.get([blockedMode], function (result) {
-        const blockedSites = result[blockedMode] || [];
-        // Remove existing listener if present
-        chrome.webRequest.onBeforeRequest.removeListener(blockRequest);
+function updateBlockedSites(blockedWebsites) {
+    chrome.storage.sync.get([blockedWebsites], function (result) {
+        const blockedSites = result[blockedWebsites] || [];
+        
+        chrome.declarativeNetRequest.getDynamicRules(function (existingRules) {
+            // Remove all existing rules
+            const existingRuleIds = existingRules.map(rule => rule.id);
     
-        // add or remove a website
-        if (index !== null) {
-            blockedSites.splice(index, 1);
-        } else {
-            blockedSites.push(website);
-        }
-        chrome.storage.sync.set({ blockedMode: blockedSites });
+            // Create new dynamic blocking rules for the updated blocked sites
+            const newRules = blockedSites.map((site, index) => ({
+                id: index + 1,
+                priority: 1,
+                action: { type: 'block' },
+                condition: { urlFilter: `*${site}*`, resourceTypes: ["main_frame"] }  // Convert site to a valid URL filter string
+            }));
     
-        chrome.webRequest.onBeforeRequest.addListener(
-            blockRequest,
-            { urls: blockedSites },
-            ["blocking"]
-        );
+            // Remove existing rules and then add the new rules
+            chrome.declarativeNetRequest.updateDynamicRules({
+                removeRuleIds: existingRuleIds,
+                addRules: newRules
+            }, function () {
+                console.error("Dynamic rules updated:", newRules);
+            });
+        });
     });
-}
-
-// Function to block requests
-function blockRequest(details) {
-    console.log(`Blocking: ${details.url}`);
-    return { cancel: true };
 }
 
 function blockCurrentURL(mode) {
     chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-        const url = tabs[0].url
+        const url = tabs[0].url;
         if (url) {
-            updateBlockedSites(url, null, mode);
+            const blockedWebsites = "blockedSites" + mode;
+            chrome.storage.sync.get([blockedWebsites], function (result) {
+                let blockedSites = result[blockedWebsites] || [];
+                // Add the site if it's not already in the list
+                if (!blockedSites.includes(url)) {
+                    blockedSites.push(url);
+                    chrome.storage.sync.set({ [blockedWebsites]: blockedSites }, () => {
+                        console.error(`Blocked ${url} in ${mode} mode`);
+                    });
+                }
+            });
         }
     });
 }
@@ -63,8 +66,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         sendResponse({ timeLeft: timeLeft, totalTime: totalTime });
     } else if (request.cmd === 'RELOAD') {
         reloadPage();
-    } else if (request.cmd === 'BLOCK_OR_UNBLOCK_URL') {
-        updateBlockedSites(request.site, request.index, request.mode);
     } else if (request.cmd === 'BLOCK_CURRENT_URL') {
         blockCurrentURL(request.mode);
     } else if (request.cmd === 'CLOSE_TAB') {
@@ -107,7 +108,7 @@ function reloadPage() {
                     !error.message.startsWith("Cannot access contents of url \"chrome") &&
                     !error.message.startsWith("Cannot access a chrome:// URL")
                 ) {
-                    console.log(error.message);
+                    console.error(error.message);
                 }
             });
         }
@@ -145,7 +146,7 @@ async function registerContentScript(tabId) {
         files: ['content-script.js']
     }, () => {
         if (chrome.runtime.lastError) {
-            console.log(chrome.runtime.lastError.message);
+            console.error(chrome.runtime.lastError.message);
         }
     });
 }
@@ -190,6 +191,12 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.storage.onChanged.addListener((changes) => {
     if (changes.reminderInterval) {
         setReminder(changes.reminderInterval.newValue);
+    }
+    // for URL blocking 
+    if (changes.blockedSitesRest) {
+        updateBlockedSites('blockedSitesRest');
+    } else if (changes.blockedSitesWork) {
+        updateBlockedSites('blockedSitesWork');
     }
 });
 

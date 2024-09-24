@@ -33,9 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
                         <input type="text" id="url" placeholder="Enter word here..." draggable=false style="display: inline-block;">
                     </div>
-                </ul>
-                <button id="save">Save</button>
-                <button id="unblock">Unblock</button>`,
+                </ul>`,
         restTab: `<h2>Rest</h2>
                 <div class="timer-container">
                     <span class="circular-bg">
@@ -53,9 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
                         <input type="text" id="url" placeholder="Enter word here..." draggable=false style="display: inline-block;">
                     </div>
-                </ul>
-                <button id="save">Save</button>
-                <button id="unblock">Unblock</button>`,
+                </ul>`,
         settingsTab: `<h2>Settings</h2>
                     <h3 style="font-size:20px; border-bottom:5px solid #0388A6;">Interactive Dove Reminders:</h3>
                     <div class="column-container">
@@ -325,57 +321,53 @@ function makeTaskDraggable(sortableList) {
     }
 }
 
-// Work and Rest Tab functions
 function doBlockWebsiteButtons(mode) {
-    // loading blocked websites
-    chrome.storage.sync.get(["blockedSites"+mode], function (result) {
-        const blockedSites = result.blockedSites || [];
-        let index = 0;
+    const setBlockedWebsites = "blockedSites" + mode;
+    chrome.storage.sync.get([setBlockedWebsites], function (result) {
+        let blockedSites = result[setBlockedWebsites] || [];
         blockedSites.forEach((site, i) => {
-            addWebsiteToDOM(site, index);
-            index = i;
+            addWebsiteToDOM(site, setBlockedWebsites, blockedSites);
         });
 
         // adding a new blocked website
-        document.getElementById('url').addEventListener('keydown', (event) =>{ 
-            if (event.key === 'Enter') {
-                const urlInput = document.getElementById('url').value;
-                if (urlInput.trim() !== '') {
-                    index++;
-                    chrome.runtime.sendMessage({ cmd: 'BLOCK_OR_UNBLOCK_URL', 
-                        site: urlInput, index: null, mode: mode });
-                    addWebsiteToDOM(urlInput, index);
-                    urlInput = '';
+        const urlInput = document.getElementById('url');
+        if (urlInput) {
+            urlInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    let urlInputValue = urlInput.value.trim();
+                    if (urlInputValue !== '') {;
+                        // Add the site if it's not already in the list
+                        if (!blockedSites.includes(urlInputValue)) {
+                            blockedSites.push(urlInputValue);
+                            chrome.storage.sync.set({ [setBlockedWebsites]: blockedSites }, () => {
+                                addWebsiteToDOM(urlInputValue, setBlockedWebsites, blockedSites);
+                                urlInput.value = ''; // Clear the input field after adding
+                            });
+                        }
+                    }
                 }
-            }
-        });
+            });
+        }
     });
 
-    function addWebsiteToDOM(site, index) {
+    function addWebsiteToDOM(site, setBlockedWebsites, blockedSites) {
         const taskList = document.querySelector('#taskList');
         const listItem = document.createElement('li');
         const taskSpan = document.createElement('span');
-        taskSpan.id = index;
         taskSpan.textContent = site;
-        taskSpan.addEventListener('dragstart', (e) => {
-            e.preventDefault(); // make text not draggable (bug fix)
-        });
         
         const removeSite = document.createElement('button');
         removeSite.id = 'deleteButton';
         removeSite.onclick = () => {
-            chrome.runtime.sendMessage({ cmd: 'BLOCK_OR_UNBLOCK_URL', 
-                site: site, index: index, mode: mode });
-            taskList.removeChild(listItem);
+            blockedSites = blockedSites.filter(s => s !== site); // removing site from list
+            chrome.storage.sync.set({ [setBlockedWebsites]: blockedSites }, () => {
+                taskList.removeChild(listItem);
+            });
         };
 
-        const prettyBulletPoint = document.createElement('div');
-        prettyBulletPoint.id = 'bulletPoint';
-
-        listItem.appendChild(prettyBulletPoint);
         listItem.appendChild(taskSpan);
         listItem.appendChild(removeSite);
-        taskList.insertBefore(listItem, taskList.nextSibling);
+        taskList.appendChild(listItem);
     }
 }
 
