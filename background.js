@@ -141,8 +141,7 @@ async function registerContentScript(tabId) {
                 id: DYNAMIC_SCRIPT_ID,
                 js: ['content-script.js'],
                 matches: ['<all_urls>',"*://*/*"],
-                runAt: 'document_end',
-                allFrames: true
+                runAt: 'document_end'
             }
         ]);
     }

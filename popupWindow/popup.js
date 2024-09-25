@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h2 style="font-size: 20px;">Distracted on certain sites?</h2>
                 <ul id="taskList">
                     <div>
-                        <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
+                        <h4 draggable="false" id="blockerHeader">Block the keyword</h4>
                         <input type="text" id="url" placeholder="Enter word here..." draggable=false style="display: inline-block;">
                     </div>
                 </ul>`,
@@ -45,10 +45,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         </span>
                     </span>
                 </div>
-                <h2 style="font-size: 20px;">Keep working on sites?</h2>
+                <h2 style="font-size: 20px;">Struggling to rest?</h2>
                 <ul id="taskList">
                     <div>
-                        <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
+                        <h4 draggable="false" id="blockerHeader">Block the keyword</h4>
                         <input type="text" id="url" placeholder="Enter word here..." draggable=false style="display: inline-block;">
                     </div>
                 </ul>`,
@@ -321,12 +321,13 @@ function makeTaskDraggable(sortableList) {
     }
 }
 
+// FUNCTIONS FOR WORK AND REST TABS
 function doBlockWebsiteButtons(mode) {
     const setBlockedWebsites = "blockedSites" + mode;
     chrome.storage.sync.get([setBlockedWebsites], function (result) {
         let blockedSites = result[setBlockedWebsites] || [];
         blockedSites.forEach((site, i) => {
-            addWebsiteToDOM(site, setBlockedWebsites, blockedSites);
+            addWebsiteToDOM(site, i, setBlockedWebsites);
         });
 
         // adding a new blocked website
@@ -335,34 +336,45 @@ function doBlockWebsiteButtons(mode) {
             urlInput.addEventListener('keydown', (event) => {
                 if (event.key === 'Enter') {
                     let urlInputValue = urlInput.value.trim();
-                    if (urlInputValue !== '') {;
-                        // Add the site if it's not already in the list
-                        if (!blockedSites.includes(urlInputValue)) {
+                    if (urlInputValue !== '') {
+                        if (urlInputValue.includes(" ")) {
+                            urlInput.placeholder = 'Only one word...'
+                        } else if (blockedSites.includes(urlInputValue)) {
+                            urlInput.placeholder = 'A unique word...'
+                        } else {
+                            // Add the site if it's not already in the list
                             blockedSites.push(urlInputValue);
                             chrome.storage.sync.set({ [setBlockedWebsites]: blockedSites }, () => {
-                                addWebsiteToDOM(urlInputValue, setBlockedWebsites, blockedSites);
-                                urlInput.value = ''; // Clear the input field after adding
+                                addWebsiteToDOM(urlInputValue, blockedSites.length, setBlockedWebsites);
                             });
                         }
                     }
+                    urlInput.value = ''; // Clear the input field after adding
                 }
             });
         }
     });
 
-    function addWebsiteToDOM(site, setBlockedWebsites, blockedSites) {
+    function addWebsiteToDOM(site, index, setBlockedWebsites) {
         const taskList = document.querySelector('#taskList');
+        if (!taskList) return;
         const listItem = document.createElement('li');
+        listItem.classList = 'notDrag';
         const taskSpan = document.createElement('span');
         taskSpan.textContent = site;
         
         const removeSite = document.createElement('button');
         removeSite.id = 'deleteButton';
         removeSite.onclick = () => {
-            blockedSites = blockedSites.filter(s => s !== site); // removing site from list
-            chrome.storage.sync.set({ [setBlockedWebsites]: blockedSites }, () => {
-                taskList.removeChild(listItem);
-            });
+            chrome.storage.sync.get([setBlockedWebsites], function (result) {
+                let blockedSites = result[setBlockedWebsites];
+                if (!blockedSites) return;
+                if (blockedSites.length === 1) index = 0;
+                blockedSites.splice(index, 1); // removing site from list
+                chrome.storage.sync.set({ [setBlockedWebsites]: blockedSites }, () => {
+                    taskList.removeChild(listItem);
+                });
+            })
         };
 
         listItem.appendChild(taskSpan);
