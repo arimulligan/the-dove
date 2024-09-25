@@ -87,6 +87,14 @@ h4 {
     overflow-y: auto;
 }
 
+.bg-container.other {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
 /* Input and Button Styling */
 input[type="text"], input[type="text"]:hover {
     border: none;
