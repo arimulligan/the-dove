@@ -30,14 +30,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h2 style="font-size: 20px;">Distracted on certain sites?</h2>
                 <ul id="taskList">
                     <div>
-                        <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
-                        <input type="text" id="taskInputBlockerHeader" placeholder="Enter word here..." draggable=false style="display: inline-block;">
+                        <h4 draggable="false" id="blockerHeader">Block the keyword</h4>
+                        <input type="text" id="url" placeholder="Enter word here..." draggable=false style="display: inline-block;">
                     </div>
-                </ul>
-                <label for="url">Enter URL to Block:</label>
-                <input type="text" id="url" placeholder="https://www.example.com">
-                <button id="save">Save</button>
-                <button id="unblock">Unblock</button>`,
+                </ul>`,
         restTab: `<h2>Rest</h2>
                 <div class="timer-container">
                     <span class="circular-bg">
@@ -49,17 +45,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         </span>
                     </span>
                 </div>
-                <h2 style="font-size: 20px;">Keep working on sites?</h2>
+                <h2 style="font-size: 20px;">Struggling to rest?</h2>
                 <ul id="taskList">
                     <div>
-                        <h4 draggable="false" id="blockerHeader">Block the keywords</h4>
-                        <input type="text" id="taskInputBlockerHeader" placeholder="Enter word here..." draggable=false style="display: inline-block;">
+                        <h4 draggable="false" id="blockerHeader">Block the keyword</h4>
+                        <input type="text" id="url" placeholder="Enter word here..." draggable=false style="display: inline-block;">
                     </div>
-                </ul>
-                <label for="url">Enter URL to Block:</label>
-                <input type="text" id="url" placeholder="https://www.example.com">
-                <button id="save">Save</button>
-                <button id="unblock">Unblock</button>`,
+                </ul>`,
         settingsTab: `<h2>Settings</h2>
                     <h3 style="font-size:20px; border-bottom:5px solid #0388A6;">Interactive Dove Reminders:</h3>
                     <div class="column-container">
@@ -329,45 +321,67 @@ function makeTaskDraggable(sortableList) {
     }
 }
 
-// Work and Rest Tab functions
-function doBlockWebsiteButtons() {
-    document.getElementById('save').addEventListener('click', function() {
-        const url = document.getElementById('url').value;
-        if (url) {
-            chrome.storage.sync.set({ blockedUrl: url }, function() {
-                chrome.declarativeNetRequest.updateDynamicRules({
-                removeRuleIds: [1],
-                addRules: [{
-                    id: 1,
-                    priority: 1,
-                    action: { type: "block" },
-                    condition: { urlFilter: url, resourceTypes: ["main_frame"] }
-                }]
-                }, function() {
-                    alert('URL saved and will be blocked.');
-                });
-            });
-        }
-    });
-    
-    document.getElementById('unblock').addEventListener('click', function() {
-        chrome.storage.sync.remove('blockedUrl', function() {
-            chrome.declarativeNetRequest.updateDynamicRules({
-                removeRuleIds: [1]
-            }, function() {
-                alert('URL unblocked.');
-            });
+// FUNCTIONS FOR WORK AND REST TABS
+function doBlockWebsiteButtons(mode) {
+    const setBlockedWebsites = "blockedSites" + mode;
+    chrome.storage.sync.get([setBlockedWebsites], function (result) {
+        let blockedSites = result[setBlockedWebsites] || [];
+        blockedSites.forEach((site, i) => {
+            addWebsiteToDOM(site, i, setBlockedWebsites);
         });
-    });
-}
 
-document.addEventListener('DOMContentLoaded', function() {
-    chrome.storage.sync.get('blockedUrl', function(data) {
-        if (data.blockedUrl && document.getElementById('url')) {
-            document.getElementById('url').value = data.blockedUrl;
+        // adding a new blocked website
+        const urlInput = document.getElementById('url');
+        if (urlInput) {
+            urlInput.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    let urlInputValue = urlInput.value.trim();
+                    if (urlInputValue !== '') {
+                        if (urlInputValue.includes(" ")) {
+                            urlInput.placeholder = 'Only one word...'
+                        } else if (blockedSites.includes(urlInputValue)) {
+                            urlInput.placeholder = 'A unique word...'
+                        } else {
+                            // Add the site if it's not already in the list
+                            blockedSites.push(urlInputValue);
+                            chrome.storage.sync.set({ [setBlockedWebsites]: blockedSites }, () => {
+                                addWebsiteToDOM(urlInputValue, blockedSites.length, setBlockedWebsites);
+                            });
+                        }
+                    }
+                    urlInput.value = ''; // Clear the input field after adding
+                }
+            });
         }
     });
-});
+
+    function addWebsiteToDOM(site, index, setBlockedWebsites) {
+        const taskList = document.querySelector('#taskList');
+        if (!taskList) return;
+        const listItem = document.createElement('li');
+        listItem.classList = 'notDrag';
+        const taskSpan = document.createElement('span');
+        taskSpan.textContent = site;
+        
+        const removeSite = document.createElement('button');
+        removeSite.id = 'deleteButton';
+        removeSite.onclick = () => {
+            chrome.storage.sync.get([setBlockedWebsites], function (result) {
+                let blockedSites = result[setBlockedWebsites];
+                if (!blockedSites) return;
+                if (blockedSites.length === 1) index = 0;
+                blockedSites.splice(index, 1); // removing site from list
+                chrome.storage.sync.set({ [setBlockedWebsites]: blockedSites }, () => {
+                    taskList.removeChild(listItem);
+                });
+            })
+        };
+
+        listItem.appendChild(taskSpan);
+        listItem.appendChild(removeSite);
+        taskList.appendChild(listItem);
+    }
+}
 
 function doCountdownTimer(isWork) {
     const startBtn = document.getElementById('startBtn');
@@ -446,7 +460,7 @@ function doCountdownTimer(isWork) {
 // WORK TAB
 function loadWorkTab() {
     doCountdownTimer(true);
-    doBlockWebsiteButtons();
+    doBlockWebsiteButtons("Work");
 }
 
 function loadChangedWorkTab() {
@@ -456,7 +470,7 @@ function loadChangedWorkTab() {
 // REST TAB
 function loadRestTab() {
     doCountdownTimer(false);
-    doBlockWebsiteButtons();
+    doBlockWebsiteButtons("Rest");
 }
 
 function loadChangedRestTab() {

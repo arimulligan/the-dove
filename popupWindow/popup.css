@@ -188,6 +188,10 @@ li {
     align-items: center;
 }
 
+li .notGrab {
+    cursor:pointer;
+}
+
 /* each text point in the list */
 span {
     color:#F28705;

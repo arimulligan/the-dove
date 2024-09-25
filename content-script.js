@@ -178,7 +178,7 @@ function getDoveTextContainer(flyDoveImg, risingBranchImg, flyingDoveGIFUrl) {
                     } else {
                         if (selectedChoice == "Yes please"){
                             // block the current URL indefinitely
-                            chrome.runtime.sendMessage({ cmd: 'BLOCK_CURRENT_URL' });
+                            chrome.runtime.sendMessage({ cmd: 'BLOCK_CURRENT_URL', mode: 'Work' });
                             questionElement.textContent = 'Blocked! The page will close in 5 seconds.';;
                             chrome.runtime.sendMessage({ cmd: 'CLOSE_TAB', milliseconds: 5000 });
                         } else {
