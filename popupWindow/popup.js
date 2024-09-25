@@ -86,8 +86,18 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     const wrongContent = {
-        workTab: `<h2>You should be in rest mode!!</h2>`,
-        restTab: `<h2>You should be in work mode!!</h2>`,
+        workTab: `<div class="bg-container other">
+        <h2>Work</h2>
+        <h2>You're in rest mode!</h2>
+        <button id="endRestEarly" class="edit-buttons" style="transform: translateY(300%);width: 120px;">End rest early</button>
+        </div>
+        `,
+        restTab: `<div class="bg-container other">
+        <h2>Rest</h2>
+        <h2>You're in work mode!</h2>
+        <button id="endWorkEarly" class="edit-buttons"  style="transform: translateY(300%);width: 120px;">End work early</button>
+        </div>
+        `,
     };
 
     const loadWrongContent = {
@@ -120,12 +130,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     chrome.storage.onChanged.addListener((changes) => {
         if (changes.mode) {
-            const currentContent = document.getElementsByClassName('selected-box')[0];
-            if (currentContent.id === 'workIcon' && changes.mode.newValue === 'Rest') {
+            if (changes.mode.newValue === 'Rest') {
                 const button = document.getElementById('restIcon');
                 changeMainContent('restTab', content, loadContent, button);
             }
-            else if (currentContent.id === 'restIcon' && changes.mode.newValue === 'Work') {
+            else if (changes.mode.newValue === 'Work') {
                 const button = document.getElementById('workIcon');
                 changeMainContent('workTab', content, loadContent, button);
             }
@@ -464,7 +473,12 @@ function loadWorkTab() {
 }
 
 function loadChangedWorkTab() {
-    // haven't done yet
+    const endModeButton = document.getElementById('endRestEarly');
+    endModeButton.addEventListener('click', ()=> {
+        chrome.storage.sync.set({ mode: 'Work' }, ()=> {
+            document.getElementById('workIcon').click();
+        });
+    })
 }
 
 // REST TAB
@@ -474,7 +488,12 @@ function loadRestTab() {
 }
 
 function loadChangedRestTab() {
-    // haven't done yet
+    const endModeButton = document.getElementById('endWorkEarly');
+    endModeButton.addEventListener('click', ()=> {
+        chrome.storage.sync.set({ mode: 'Rest' }, ()=> {
+            document.getElementById('restIcon').click();
+        });
+    })
 }
 
 // SETTINGS
