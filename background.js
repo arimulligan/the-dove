@@ -1,26 +1,33 @@
 // for URL blocking
-function updateBlockedSites(blockedWebsites) {
-    chrome.storage.sync.get([blockedWebsites], function (result) {
-        const blockedSites = result[blockedWebsites] || [];
-        
+function updateBlockedSites() {
+    chrome.storage.sync.get(['mode', 'blockedSitesRest', 'blockedSitesWork'], function (result) {
+        let blockedSites = [];
+
+        // Select the appropriate blocked sites list based on the mode
+        if (result.mode === 'Rest') {
+            blockedSites = result.blockedSitesRest || [];
+        } else if (result.mode === 'Work') {
+            blockedSites = result.blockedSitesWork || [];
+        }
+
+        // Get the existing dynamic rules and clear them
         chrome.declarativeNetRequest.getDynamicRules(function (existingRules) {
-            // Remove all existing rules
-            const existingRuleIds = existingRules.map(rule => rule.id);
-    
-            // Create new dynamic blocking rules for the updated blocked sites
+            const oldRuleIds = existingRules.map(rule => rule.id);
+
+            // Create new rules for the currently blocked sites
             const newRules = blockedSites.map((site, index) => ({
                 id: index + 1,
                 priority: 1,
                 action: { type: 'block' },
-                condition: { urlFilter: `*${site}*`, resourceTypes: ["main_frame"] }  // Convert site to a valid URL filter string
+                condition: { urlFilter: `*${site}*`, resourceTypes: ["main_frame"] }
             }));
-    
-            // Remove existing rules and then add the new rules
+
+            // Remove old rules and add new rules based on the current mode
             chrome.declarativeNetRequest.updateDynamicRules({
-                removeRuleIds: existingRuleIds,
+                removeRuleIds: oldRuleIds,
                 addRules: newRules
             }, function () {
-                console.error("Dynamic rules updated:", newRules);
+                console.error("Blocking rules updated for mode:", result.mode);
             });
         });
     });
@@ -193,10 +200,8 @@ chrome.storage.onChanged.addListener((changes) => {
         setReminder(changes.reminderInterval.newValue);
     }
     // for URL blocking 
-    if (changes.blockedSitesRest) {
-        updateBlockedSites('blockedSitesRest');
-    } else if (changes.blockedSitesWork) {
-        updateBlockedSites('blockedSitesWork');
+    if (changes.blockedSitesRest || changes.blockedSitesWork || changes.mode) {
+        updateBlockedSites();
     }
 });
 
