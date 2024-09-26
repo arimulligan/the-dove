@@ -255,10 +255,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         style.innerHTML = `
             @keyframes doveMoveDown {
                 0% { bottom: 120%; }
-                100% { bottom: 15%; }
+                100% { bottom: 200px; }
             }
             @keyframes doveMoveUp {
-                0% { bottom: 15%; }
+                0% { bottom: 200px; }
                 100% { bottom: 120%; }
             }
             @keyframes branchMoveUp {
@@ -274,7 +274,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                     width: 20%;
                     position: fixed;
                     left: 60%;
-                    bottom: 25%;
+                    bottom: 300px;
                     color: white;
                     background-color: #04668c;
                     padding: 20px;
@@ -308,7 +308,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 // Replace the flying dove GIF with the standing dove image
                 flyDoveImg.src = standingDoveUrl;
                 flyDoveImg.style.animation = '';
-                flyDoveImg.style.bottom = '15%';
+                flyDoveImg.style.bottom = '200px';
                 flyDoveImg.style.width = '100px';
                 flyDoveImg.style.height = '100px';
                 flyDoveImg.style.left = '80%';
@@ -341,7 +341,7 @@ function flyAway(doveText, flyDoveImg, risingBranchImg, flyingDoveGIFUrl) {
 
     flyDoveImg.src = flyingDoveGIFUrl;
     flyDoveImg.style.animation = 'doveMoveUp 5s linear';
-    flyDoveImg.style.bottom = '15%';
+    flyDoveImg.style.bottom = '200px';
     flyDoveImg.style.width = '200px';
     flyDoveImg.style.height = '200px';
 }
