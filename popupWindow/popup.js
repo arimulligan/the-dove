@@ -269,8 +269,10 @@ function saveTasksToStorage(taskList) {
  */
 function makeTaskDraggable(sortableList) {
     let draggedItem = null;
+    const allDraggableElements = [...sortableList.querySelectorAll("ul div")];
 
     sortableList.addEventListener("dragstart", (e) => {
+        allDraggableElements.forEach((el) => el.style.borderBottom = '5px solid #0388A6');
         draggedItem = e.target;
         setTimeout(() => {
             e.target.style.display = "none";
@@ -278,6 +280,7 @@ function makeTaskDraggable(sortableList) {
     });
 
     sortableList.addEventListener("dragend", (e) => {
+        allDraggableElements.forEach((el) => el.style.borderBottom = '5px solid #0388A6');
         setTimeout(() => {
             e.target.style.display = "";
             draggedItem = null;
@@ -287,11 +290,13 @@ function makeTaskDraggable(sortableList) {
 
     sortableList.addEventListener("dragover", (e) => {
         e.preventDefault();
+        allDraggableElements.forEach((el) => el.style.borderBottom = '5px solid #0388A6');
+
         const afterElement = getDragAfterElement(sortableList, e.clientY);
-        if (afterElement == null) {
-            sortableList.appendChild(draggedItem);
-        } else {
+        if (afterElement !== null) {
+            afterElement.style.borderBottom = '5px solid #8C5C4A';
             sortableList.insertBefore(draggedItem, afterElement);
+        } else {
         }
     });
 
