@@ -186,7 +186,7 @@ function setReminder(interval) {
     }, interval);
 }
 
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onStartup.addListener(() => {
     chrome.storage.sync.get('reminderInterval', (data) => {
         const interval = data.reminderInterval || 5400000; // Default to 1.5 hours
         setReminder(interval);
@@ -203,7 +203,7 @@ chrome.storage.onChanged.addListener((changes) => {
     }
 });
 
-chrome.tabs.onActivated.addListener(async () => {
+chrome.windows.onCreated.addListener(async () => {
     chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
         if (tabs.length > 0) {
             const activeTabId = tabs[0].id;
