@@ -212,7 +212,7 @@ span {
     background-image: url('/images/leafBulletPoint.png');
     background-size: contain;
     background-repeat: no-repeat;
-    border-bottom: none;
+    border-bottom: none !important;
     margin-right: 15px;
 }
 

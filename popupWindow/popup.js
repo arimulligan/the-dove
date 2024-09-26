@@ -293,10 +293,10 @@ function makeTaskDraggable(sortableList) {
         allDraggableElements.forEach((el) => el.style.borderBottom = '5px solid #0388A6');
 
         const afterElement = getDragAfterElement(sortableList, e.clientY);
-        if (afterElement !== null) {
+        if (afterElement) {
             afterElement.style.borderBottom = '5px solid #8C5C4A';
-            sortableList.insertBefore(draggedItem, afterElement);
-        } else {
+            // Insert after the hovered element by using insertBefore and nextSibling
+            sortableList.insertBefore(draggedItem, afterElement.nextSibling);
         }
     });
 
