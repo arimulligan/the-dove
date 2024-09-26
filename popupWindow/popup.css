@@ -196,8 +196,8 @@ li {
     align-items: center;
 }
 
-li .notGrab {
-    cursor:pointer;
+.notDrag {
+    cursor:auto;
 }
 
 /* each text point in the list */
