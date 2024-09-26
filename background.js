@@ -140,8 +140,7 @@ async function registerContentScript(tabId) {
             {
                 id: DYNAMIC_SCRIPT_ID,
                 js: ['content-script.js'],
-                matches: ['<all_urls>',"*://*/*"],
-                runAt: 'document_end'
+                matches: ['<all_urls>',"*://*/*"]
             }
         ]);
     }
@@ -198,7 +197,7 @@ chrome.storage.onChanged.addListener((changes) => {
     if (changes.reminderInterval) {
         setReminder(changes.reminderInterval.newValue);
     }
-    // for URL blocking 
+    // for URL blocking
     if (changes.blockedSitesRest || changes.blockedSitesWork || changes.mode) {
         updateBlockedSites();
     }
