@@ -66,12 +66,16 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <h4 id="remIntervalsValue"></h4>
                             </div>
                         </div>
+                    </div>
+                    <h3 style="font-size:20px; border-bottom:5px solid #0388A6;">Strict Mode:</h3>
+                    <div class="column-container">
                         <div class="row-container">
-                            <h4>Change what dove talks about?</h4>
-                            <div class="column-container" id="discussion">
-                                <label><input type="checkbox" name="toggle"><span>Bible verses</span></label>
-                                <label><input type="checkbox" name="toggle"><span>Cheeky questions</span></label>
-                            </div>
+                            <h4>Don't want to get tempted to unblock sites?</h4>
+                            <button id="unblockOnOff" class="edit-buttons"></button>
+                        </div>
+                        <div class="row-container">
+                            <h4>Don't want to edit the rest and work timers?</h4>
+                            <button id="editTimersOnOff" class="edit-buttons"></button>
                         </div>
                     </div>
             `

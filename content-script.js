@@ -74,7 +74,7 @@ function getQuote(callback) {
         ]
     };
 
-    const category = "Questions/Statements"; // TODO: get this from settings.
+    const category = randomInteger(0, 1) ? "Questions/Statements" : "Bible Verses";
 
     // getting work or rest category depending on what mode the user is in.
     chrome.storage.sync.get('mode', (data) => {
