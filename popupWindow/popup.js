@@ -56,22 +56,26 @@ document.addEventListener('DOMContentLoaded', () => {
                     <h3 style="font-size:20px; border-bottom:5px solid #0388A6;">Interactive Dove Reminders:</h3>
                     <div class="column-container">
                         <div class="row-container">
-                            <h4>Turn on/off reminders indefinitely?</h4>
+                            <h4>Turn on/off reminders indefinitely</h4>
                             <button id="onOrOff" class="edit-buttons"></button>
                         </div>
                         <div class="row-container">
-                            <h4>Change the reminder frequency?</h4>
+                            <h4>Change the reminder frequency here</h4>
                             <div class="column-container">
                                 <input id="remIntervals" type="range" min="0.25" max="23.75" step="0.25" style="width: 90%;" value="1.5"></input>
                                 <h4 id="remIntervalsValue"></h4>
                             </div>
                         </div>
+                    </div>
+                    <h3 style="font-size:20px; border-bottom:5px solid #0388A6;">Strict Mode:</h3>
+                    <div class="column-container">
                         <div class="row-container">
-                            <h4>Change what dove talks about?</h4>
-                            <div class="column-container" id="discussion">
-                                <label><input type="checkbox" name="toggle"><span>Bible verses</span></label>
-                                <label><input type="checkbox" name="toggle"><span>Cheeky questions</span></label>
-                            </div>
+                            <h4>Get tempted to unblock sites</h4>
+                            <button id="unblockOnOff" class="edit-buttons"></button>
+                        </div>
+                        <div class="row-container">
+                            <h4>Edit the rest and work timers</h4>
+                            <button id="editTimersOnOff" class="edit-buttons"></button>
                         </div>
                     </div>
             `
@@ -377,22 +381,30 @@ function doBlockWebsiteButtons(mode) {
         const taskSpan = document.createElement('span');
         taskSpan.textContent = site;
         
-        const removeSite = document.createElement('button');
-        removeSite.id = 'deleteButton';
-        removeSite.onclick = () => {
-            chrome.storage.sync.get([setBlockedWebsites], function (result) {
-                let blockedSites = result[setBlockedWebsites];
-                if (!blockedSites) return;
-                if (blockedSites.length === 1) index = 0;
-                blockedSites.splice(index, 1); // removing site from list
-                chrome.storage.sync.set({ [setBlockedWebsites]: blockedSites }, () => {
-                    taskList.removeChild(listItem);
-                });
-            })
-        };
+        const showDeleteBin = 'showDeleteBin';
+        chrome.storage.local.get({ showDeleteBin }, (result) => {
+            const showDeleteBins = result[showDeleteBin];
+            if (showDeleteBins) {
+                const removeSite = document.createElement('button');
+                removeSite.id = 'deleteButton';
+                removeSite.onclick = () => {
+                    chrome.storage.sync.get([setBlockedWebsites], function (result) {
+                        let blockedSites = result[setBlockedWebsites];
+                        if (!blockedSites) return;
+                        if (blockedSites.length === 1) index = 0;
+                        blockedSites.splice(index, 1); // removing site from list
+                        chrome.storage.sync.set({ [setBlockedWebsites]: blockedSites }, () => {
+                            taskList.removeChild(listItem);
+                        });
+                    })
+                };
+                listItem.appendChild(removeSite);
+            } else {
+                listItem.style.paddingTop = '20px';
+            }
+        })
 
         listItem.appendChild(taskSpan);
-        listItem.appendChild(removeSite);
         taskList.appendChild(listItem);
     }
 }
@@ -408,6 +420,7 @@ function doCountdownTimer(isWork) {
     let totalTime = 10; // debug: need to change to default 50.
     let timeLeft;
 
+    // starting the timer / continuing the timer
     chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
         if (response.timeLeft && response.totalTime) {
             timeLeft = response.timeLeft;
@@ -425,15 +438,26 @@ function doCountdownTimer(isWork) {
         });
     });
 
-    // editing the timer 
-    showTimeEdits.textContent = "0 hr(s), and 50 mins.";
-    editTimerRange.addEventListener("input", (event) => {
-        const time = getMinutesHours(event);
-        showTimeEdits.textContent = time[0]+ " hr(s), and "+time[1]+" mins.";
-    });
-    editTimerRange.addEventListener("mouseup", (event) => {
-        const time = getMinutesHours(event);
-        totalTime = (time[0] * 60) + time[1]; // Convert hours to seconds
+    // editing the timer
+    const showEditTimers = 'showEditTimers';
+    chrome.storage.local.get({ showEditTimers }, (result) => {
+        const showEditTimer = result[showEditTimers];
+        if (showEditTimer) {
+            console.error(showEditTimer)
+            showTimeEdits.textContent = "0 hr(s), and 50 mins.";
+            editTimerRange.addEventListener("input", (event) => {
+                const time = getMinutesHours(event);
+                showTimeEdits.textContent = time[0]+ " hr(s), and "+time[1]+" mins.";
+            });
+            editTimerRange.addEventListener("mouseup", (event) => {
+                const time = getMinutesHours(event);
+                totalTime = (time[0] * 60) + time[1]; // Convert hours to seconds
+            });
+        } else {
+            showTimeEdits.style.display = 'none';
+            editTimerRange.style.display = 'none';
+            console.error(showEditTimer, 'changing display')
+        }
     });
 
     function startTimer() {
@@ -503,23 +527,6 @@ function loadChangedRestTab() {
 
 // SETTINGS
 function loadSettings() {
-    const toggleInteractionElem = document.getElementById('onOrOff');
-    if (toggleInteractionElem.innerHTML == '') {
-        chrome.storage.local.get('showDoveIndefinitely', (result) => {
-            const showDoveIndefinitely = result.showDoveIndefinitely ?? true;
-            toggleInteractionElem.innerHTML = showDoveIndefinitely ? 'Turn Off' : 'Turn On';
-        });
-    }
-    toggleInteractionElem.addEventListener('click', () => {
-        chrome.storage.local.get('showDoveIndefinitely', (result) => {
-            const showDoveIndefinitely = result.showDoveIndefinitely ?? true;
-            toggleInteractionElem.innerHTML = showDoveIndefinitely ? 'Turn Off' : 'Turn On';
-            chrome.storage.local.set({ showDoveIndefinitely: !showDoveIndefinitely }, () => {
-                chrome.runtime.sendMessage({ cmd: 'RELOAD' });
-            });
-        });
-    });
-
     const value = document.querySelector("#remIntervalsValue");
     const input = document.querySelector("#remIntervals");
     value.textContent = "1 hour(s), and 30 mins.";
@@ -534,7 +541,34 @@ function loadSettings() {
         });
     });
 
-    // TODO: add event listnener for dove talks about (verses / questions) and send info to content script.
+    function onOrOffButton(storageVar, elementId) {
+        const toggleInteractionElem = document.getElementById(elementId);
+        if (toggleInteractionElem.innerHTML == '') {
+            chrome.storage.local.get(storageVar, (result) => {
+                const settingOnOrOff = result[storageVar] ?? true;
+                console.error(settingOnOrOff, 'getting setting', storageVar)
+                toggleInteractionElem.innerHTML = settingOnOrOff ? 'Turn Off' : 'Turn On';
+            });
+        }
+        toggleInteractionElem.addEventListener('click', () => {
+            chrome.storage.local.get(storageVar, (result) => {
+                const settingOnOrOff = result[storageVar] ?? true;
+                console.error(settingOnOrOff, 'getting setting when clicked', storageVar)
+                const newSetting = !settingOnOrOff;
+                chrome.storage.local.set({ [storageVar]: !settingOnOrOff }, () => {
+                    console.error(
+                        'set the var: ', newSetting
+                    )
+                    toggleInteractionElem.innerHTML = newSetting ? 'Turn Off' : 'Turn On';
+                    chrome.runtime.sendMessage({ cmd: 'RELOAD' });
+                });
+            });
+        });
+    }
+
+    onOrOffButton('showDoveIndefinitely', 'onOrOff');
+    onOrOffButton('showEditTimers', 'editTimersOnOff');
+    onOrOffButton('showDeleteBin', 'unblockOnOff');
 }
 
 function getMinutesHours(event) {
