@@ -165,24 +165,41 @@ function setReminder(interval) {
         clearInterval(reminderTimer);
     }
 
-    reminderTimer = setInterval(async () => {
+    let executionCount = 0;
+    const runReminderLogic = async (count) => {
         chrome.storage.local.get(['showDoveIndefinitely'], async (result) => {
             const showDoveIndefinitely = result.showDoveIndefinitely ?? true;
             if (showDoveIndefinitely) {
                 chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+                    const activeTab = tabs[0];
                     try {
                         if (tabs.length > 0) {
-                            const activeTabId = tabs[0].id;
+                            const activeTabId = activeTab.id;
                             await registerContentScript(activeTabId); // Ensure content script is injected
-                            chrome.tabs.sendMessage(activeTabId, { action: 'doveReminding' });
+                            const seconds = (interval * count) / 100;
+                            // TODO: immplement the seconds functionality into content script
+                            chrome.tabs.sendMessage(activeTabId, { action: 'doveReminding', seconds: seconds });
                         }
                     } catch (error) {
-                        // TODO: Change these to notifications, so the user DOES see the dove in a diff way.
-                        console.error('Probably a chrome URL I cannot interfere with...', error);
+                        // Create a notification to inform the user
+                        const message = `Cannot inject script into restricted page: ${activeTab.url}`;
+                        chrome.notifications.create({
+                            type: 'basic',
+                            iconUrl: 'icons/doveLogo128.png',
+                            title: 'Dove Reminder Issue',
+                            message: message,
+                            priority: 2
+                        });
+                        return;
                     }
                 });
             }
         });
+    };
+    runReminderLogic(executionCount);
+    reminderTimer = setInterval(() => {
+        executionCount++;
+        runReminderLogic(executionCount);
     }, interval);
 }
 
