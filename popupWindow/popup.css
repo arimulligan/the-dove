@@ -204,6 +204,7 @@ li {
 span {
     color:#F28705;
     width: 75vw;
+    word-wrap:break-word;
 }
 
 #bulletPoint {
@@ -255,6 +256,7 @@ button#redirectBtn {
     position: relative;
     background-color: transparent;
     font-size:large;
+    text-align: center;
 }
 
 .circular-progress {
