@@ -26,8 +26,6 @@ function updateBlockedSites() {
             chrome.declarativeNetRequest.updateDynamicRules({
                 removeRuleIds: oldRuleIds,
                 addRules: newRules
-            }, function () {
-                console.error("Blocking rules updated for mode:", result.mode);
             });
         });
     });
@@ -43,9 +41,7 @@ function blockCurrentURL(mode) {
                 // Add the site if it's not already in the list
                 if (!blockedSites.includes(url)) {
                     blockedSites.push(url);
-                    chrome.storage.sync.set({ [blockedWebsites]: blockedSites }, () => {
-                        console.error(`Blocked ${url} in ${mode} mode`);
-                    });
+                    chrome.storage.sync.set({ [blockedWebsites]: blockedSites });
                 }
             });
         }
@@ -64,6 +60,7 @@ function closeCurrentTab(milliseconds) {
 let countdownInterval;
 let totalTime;
 let timeLeft;
+let counterToMinute = 0;
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.cmd === 'START_TIMER') {
         totalTime = request.totalTime;
@@ -71,6 +68,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         startCountdown();
     } else if (request.cmd === 'GET_TIME') {
         sendResponse({ timeLeft: timeLeft, totalTime: totalTime });
+    } else if (request.cmd === 'STOP_TIMER') {
+        stopCountdown();
     } else if (request.cmd === 'RELOAD') {
         reloadPage();
     } else if (request.cmd === 'BLOCK_CURRENT_URL') {
@@ -84,10 +83,15 @@ function startCountdown() {
     stopCountdown();
     countdownInterval = setInterval(() => {
         if (timeLeft > 0) {
-            timeLeft--;
-            chrome.runtime.sendMessage({ cmd: 'UPDATE_TIME', timeLeft: timeLeft });
+            counterToMinute++;
+            if (counterToMinute == 60) {
+                timeLeft--;
+                counterToMinute = 0;
+            }
+            chrome.runtime.sendMessage({ cmd: 'UPDATE_TIME', timeLeft: timeLeft, seconds: counterToMinute });
         } else {
             stopCountdown();
+            counterToMinute = 0;
             chrome.storage.sync.get('mode', (data) => {
                 const mode = data.mode;
                 chrome.storage.sync.set({ mode: mode === 'Work' ? 'Rest' : 'Work' });
@@ -100,6 +104,8 @@ function stopCountdown() {
     if (countdownInterval) {
         clearInterval(countdownInterval);
         countdownInterval = null;
+        timeLeft = null;
+        totalTime = null;
     }
 }
 
@@ -115,7 +121,14 @@ function reloadPage() {
                     !error.message.startsWith("Cannot access contents of url \"chrome") &&
                     !error.message.startsWith("Cannot access a chrome:// URL")
                 ) {
-                    console.error(error.message);
+                    const message = `Cannot inject script into this restricted page.`;
+                    chrome.notifications.create({
+                        type: 'basic',
+                        iconUrl: 'icons/doveLogo128.png',
+                        title: 'Dove Reminder Issue',
+                        message: message,
+                        priority: 2
+                    });
                 }
             });
         }
@@ -149,10 +162,6 @@ async function registerContentScript(tabId) {
     await chrome.scripting.executeScript({
         target: { tabId },
         files: ['content-script.js']
-    }, () => {
-        if (chrome.runtime.lastError) {
-            console.error(chrome.runtime.lastError.message);
-        }
     });
 }
 

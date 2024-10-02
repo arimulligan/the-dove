@@ -120,10 +120,13 @@ document.addEventListener('DOMContentLoaded', () => {
                         mode === 'Work' && targetPage === 'restTab'
                     ) {
                         changeMainContent(targetPage, wrongContent, loadWrongContent, button);
+                    } else {
+                        changeMainContent(targetPage, content, loadContent, button);
                     }
                 });
+            } else {
+                changeMainContent(targetPage, content, loadContent, button);
             }
-            changeMainContent(targetPage, content, loadContent, button);
         }
     });
 
@@ -417,8 +420,9 @@ function doCountdownTimer(isWork) {
     const showTimeEdits = document.getElementById('showTimeEdits');
     let circularProgress;
     let circularProgressIntervalID;
-    let totalTime = 10; // debug: need to change to default 50.
+    let totalTime = 50; // debug: need to change to default 50.
     let timeLeft;
+    let counterToMinute;
 
     // starting the timer / continuing the timer
     chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
@@ -426,7 +430,10 @@ function doCountdownTimer(isWork) {
             timeLeft = response.timeLeft;
             totalTime = response.totalTime;
             continueTimer();
+        } else {
+            startBtn.style.display = "block";
         }
+        checkIfBackgroundScriptWorks();
     });
     startBtn.addEventListener('click', () => {
         const mode = isWork ? 'Work' : 'Rest';
@@ -443,7 +450,8 @@ function doCountdownTimer(isWork) {
     chrome.storage.local.get({ showEditTimers }, (result) => {
         const showEditTimer = result[showEditTimers];
         if (showEditTimer) {
-            console.error(showEditTimer)
+            showTimeEdits.style.display = 'block';
+            editTimerRange.style.display = 'block';
             showTimeEdits.textContent = "0 hr(s), and 50 mins.";
             editTimerRange.addEventListener("input", (event) => {
                 const time = getMinutesHours(event);
@@ -456,12 +464,13 @@ function doCountdownTimer(isWork) {
         } else {
             showTimeEdits.style.display = 'none';
             editTimerRange.style.display = 'none';
-            console.error(showEditTimer, 'changing display')
         }
     });
 
     function startTimer() {
-        chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: totalTime });
+        chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: totalTime }, ()=>{
+            checkIfBackgroundScriptWorks();
+        });
         continueTimer();
     }
 
@@ -473,25 +482,29 @@ function doCountdownTimer(isWork) {
         chrome.runtime.onMessage.addListener((message) => {
             if (message.cmd === 'UPDATE_TIME') {
                 timeLeft = message.timeLeft;
-                countdownView.innerHTML = timeLeft + " minutes left";
+                counterToMinute = message.seconds;
+                countdownView.innerHTML = timeLeft + " minutes and " + counterToMinute + " seconds left";
             }
         });
         startCircularProgressAnimation();
     }
 
     function startCircularProgressAnimation() {
-        let start = totalTime - timeLeft;
-        let degreesPerSecond = 360 / totalTime;
-        let degreesPerInterval = degreesPerSecond / 20;
-        circularProgress = degreesPerSecond * start;
+        let totalSeconds = totalTime * 60;
+        let elapsedSeconds = (totalTime - timeLeft) * 60 + counterToMinute;
+        let degreesPerSecond = 360 / totalSeconds;
+        circularProgress = degreesPerSecond * elapsedSeconds;
+
         circularProgressIntervalID = setInterval(() => {
-        if (Math.round(circularProgress) === 360) {
-            clearInterval(circularProgressIntervalID);
-        } else {
-            circularProgress = circularProgress + degreesPerInterval;
-            circularProgressEl.style.background = `conic-gradient(#0388A6 ${circularProgress}deg, #04668C 0deg)`;
-        }
-        }, 50);
+            if (timeLeft > 0 || counterToMinute > 0) {
+                elapsedSeconds = (totalTime - timeLeft) * 60 + counterToMinute;
+                circularProgress = degreesPerSecond * elapsedSeconds;
+                circularProgressEl.style.background = `conic-gradient(#0388A6 ${circularProgress}deg, #04668C 0deg)`;
+            } else {
+                clearInterval(circularProgressIntervalID);
+                circularProgressEl.style.background = `conic-gradient(#0388A6 360deg, #04668C 0deg)`;
+            }
+        }, 1000);
     }
 }
 
@@ -504,8 +517,8 @@ function loadWorkTab() {
 function loadChangedWorkTab() {
     const endModeButton = document.getElementById('endRestEarly');
     endModeButton.addEventListener('click', ()=> {
-        chrome.storage.sync.set({ mode: 'Work' }, ()=> {
-            document.getElementById('workIcon').click();
+        chrome.runtime.sendMessage({ cmd: 'STOP_TIMER' }, ()=> {
+            chrome.storage.sync.set({ mode: 'Work' });
         });
     })
 }
@@ -519,8 +532,8 @@ function loadRestTab() {
 function loadChangedRestTab() {
     const endModeButton = document.getElementById('endWorkEarly');
     endModeButton.addEventListener('click', ()=> {
-        chrome.storage.sync.set({ mode: 'Rest' }, ()=> {
-            document.getElementById('restIcon').click();
+        chrome.runtime.sendMessage({ cmd: 'STOP_TIMER' }, ()=> {
+            chrome.storage.sync.set({ mode: 'Rest' });
         });
     })
 }
@@ -529,7 +542,21 @@ function loadChangedRestTab() {
 function loadSettings() {
     const value = document.querySelector("#remIntervalsValue");
     const input = document.querySelector("#remIntervals");
-    value.textContent = "1 hour(s), and 30 mins.";
+    chrome.storage.sync.get('reminderInterval', (data) => {
+        const interval = data.reminderInterval;
+        console.error(interval)
+        if (interval) {
+
+            const totalMinutes = (Math.round(interval * 60));
+            console.error(totalMinutes)
+            const hours = Math.floor(totalMinutes / 60);
+            const minutes = totalMinutes % 60;
+            input.value = hours + minutes;
+            value.textContent = hours+ " hour(s), and "+minutes+" mins.";
+        } else {
+            value.textContent = "1 hour(s), and 30 mins.";
+        }
+    });
     input.addEventListener("input", (event) => {
         const time = getMinutesHours(event);
         value.textContent = time[0]+ " hour(s), and "+time[1]+" mins.";
@@ -546,21 +573,18 @@ function loadSettings() {
         if (toggleInteractionElem.innerHTML == '') {
             chrome.storage.local.get(storageVar, (result) => {
                 const settingOnOrOff = result[storageVar] ?? true;
-                console.error(settingOnOrOff, 'getting setting', storageVar)
                 toggleInteractionElem.innerHTML = settingOnOrOff ? 'Turn Off' : 'Turn On';
             });
         }
         toggleInteractionElem.addEventListener('click', () => {
             chrome.storage.local.get(storageVar, (result) => {
                 const settingOnOrOff = result[storageVar] ?? true;
-                console.error(settingOnOrOff, 'getting setting when clicked', storageVar)
                 const newSetting = !settingOnOrOff;
                 chrome.storage.local.set({ [storageVar]: !settingOnOrOff }, () => {
-                    console.error(
-                        'set the var: ', newSetting
-                    )
                     toggleInteractionElem.innerHTML = newSetting ? 'Turn Off' : 'Turn On';
-                    chrome.runtime.sendMessage({ cmd: 'RELOAD' });
+                    chrome.runtime.sendMessage({ cmd: 'RELOAD' }, ()=> {
+                        checkIfBackgroundScriptWorks();
+                    });
                 });
             });
         });
@@ -574,8 +598,22 @@ function loadSettings() {
 function getMinutesHours(event) {
     const decimalHours = event.target.value;
     const n = new Date(0,0);
-    n.setMinutes(+Math.round(decimalHours * 60)); 
+    n.setMinutes(+Math.round(decimalHours * 60));
     const hours = n.getHours();
     const minutes = n.getMinutes();
     return [hours, minutes];
+}
+
+function checkIfBackgroundScriptWorks() {
+    if (chrome.runtime.lastError) {
+        // Create a notification to inform the user
+        const message = JSON.stringify(chrome.runtime.lastError);
+        chrome.notifications.create({
+            type: 'basic',
+            iconUrl: '/icons/doveLogo128.png',
+            title: 'Dove Reminder Issue',
+            message: message,
+            priority: 2
+        });
+    }
 }
