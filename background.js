@@ -77,6 +77,7 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.cmd === 'CLOSE_TAB') {
         closeCurrentTab(request.milliseconds);
     }
+    return true;
 });
 
 function startCountdown() {
@@ -165,7 +166,7 @@ async function registerContentScript(tabId) {
     });
 }
 
-const debug = false; // make dove turn up faster.
+const debug = true; // make dove turn up faster.
 function setReminder(interval) {
     if (debug) {
         interval = 10000; // 10 seconds
@@ -187,7 +188,10 @@ function setReminder(interval) {
                             await registerContentScript(activeTabId); // Ensure content script is injected
                             const seconds = (interval * count) / 100;
                             // TODO: immplement the seconds functionality into content script
-                            chrome.tabs.sendMessage(activeTabId, { action: 'doveReminding', seconds: seconds });
+                            const result = await chrome.tabs.sendMessage(activeTabId, { action: 'doveReminding', seconds: seconds });
+                            if (result !== 'received and done'){
+                                console.error("hang on a minute!", result)
+                            }
                         }
                     } catch (error) {
                         // Create a notification to inform the user

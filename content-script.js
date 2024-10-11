@@ -333,6 +333,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         const img = document.querySelector('img');
         if (img) img.remove();
     }
+    sendResponse({status: 'received and done'})
+    return true;
 });
 
 function flyAway(doveText, flyDoveImg, risingBranchImg, flyingDoveGIFUrl) {

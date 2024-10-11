@@ -16,7 +16,7 @@
             "matches": ["<all_urls>"]
         }
     ],
-    "permissions": ["storage", "scripting", "activeTab", "tabs", "webRequest",
+    "permissions": ["storage", "scripting", "activeTab", "tabs",
     "declarativeNetRequest", "declarativeNetRequestWithHostAccess", "notifications"],
     "host_permissions": ["<all_urls>", "*://*/*"],
     "background": {

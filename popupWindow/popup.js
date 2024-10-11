@@ -493,6 +493,7 @@ function doCountdownTimer(isWork) {
                 counterToMinute = message.seconds;
                 countdownView.innerHTML = timeLeft + " minutes and " + counterToMinute + " seconds left";
             }
+            return true;
         });
         startCircularProgressAnimation();
     }
