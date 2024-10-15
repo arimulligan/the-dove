@@ -271,7 +271,7 @@ function deleteTask(section, taskId) {
 
 function getTasksFromStorage() {
     const tasks = localStorage.getItem('tasks');
-    if (!tasks || tasks === 'undefined' || tasks === "{\"NotDone\":[],\"Doing\":[],\"Done\":[]}") {
+    if (!tasks || tasks === 'undefined') {
         return {
             'NotDone': [{
                 id: "task0",
