@@ -219,6 +219,7 @@ function addTaskToDOM(section, task) {
     const taskSpan = document.createElement('span');
     taskSpan.id = task.id;
     taskSpan.textContent = task.content;
+    taskSpan.contentEditable = true;
     taskSpan.addEventListener('dragstart', (e) => {
         e.preventDefault(); // make text not draggable (bug fix)
     });
@@ -234,9 +235,11 @@ function addTaskToDOM(section, task) {
     const prettyBulletPoint = document.createElement('div');
     prettyBulletPoint.id = 'bulletPoint';
 
+    listItem.appendChild(document.createElement('div'))
     listItem.appendChild(prettyBulletPoint);
     listItem.appendChild(taskSpan);
     listItem.appendChild(deleteButton);
+    listItem.appendChild(document.createElement('div'))
     taskList.parentNode.insertBefore(listItem, taskList.nextSibling);
 }
 
@@ -244,13 +247,20 @@ function editTask(section, taskSpan) {
     const taskList = getTasksFromStorage();
     const task = taskList[section].find(t => t.id === taskSpan.id);
     if (task !== undefined){
-        if (!taskSpan.isContentEditable) {
-            taskSpan.contentEditable = true;
-            taskSpan.focus();
-        } else {
-            task.content = taskSpan.textContent;
-            saveTasksToStorage(taskList);
-        }
+        taskSpan.focus();
+        // Add blur event to save when done editing
+        taskSpan.addEventListener('blur', () => {
+            if (taskSpan.textContent === "") {
+                deleteTask(section, taskSpan.id);
+            } else {
+                task.content = taskSpan.textContent;
+                taskList[section] = taskList[section].map(t =>
+                    t.id === task.id ? task : t
+                );
+                saveTasksToStorage(taskList);
+            }
+        });
+        
     }
 }
 
@@ -262,9 +272,12 @@ function deleteTask(section, taskId) {
 
 function getTasksFromStorage() {
     const tasks = localStorage.getItem('tasks');
-    if (!tasks || tasks === 'undefined') {
+    if (!tasks || tasks === 'undefined' || tasks === "{\"NotDone\":[],\"Doing\":[],\"Done\":[]}") {
         return {
-            'NotDone': [],
+            'NotDone': [{
+                id: "task0",
+                content: "Your first task! Drag/drop, edit, or delete this."
+            }],
             'Doing': [],
             'Done': []
         };
@@ -318,7 +331,12 @@ function makeTaskDraggable(sortableList) {
             }
             afterElement.style.borderBottom = '5px solid #8C5C4A';
             // Insert after the hovered element by using insertBefore and nextSibling
-            sortableList.insertBefore(draggedItem, afterElement.nextSibling);
+            try {
+                sortableList.insertBefore(draggedItem, afterElement.nextSibling);
+            } catch (error) {
+                // functionality still works, because it throws the error when it's in a temporarily invliad state (when the user is still hovering)
+            }
+                
         }
     });
 
@@ -328,7 +346,7 @@ function makeTaskDraggable(sortableList) {
         ),];
         return draggableElements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
+            const offset = y - box.top - box.height;
             if (offset < 0 && offset > closest.offset) {
                 return { offset: offset, element: child };
             } else {
