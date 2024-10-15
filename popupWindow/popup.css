@@ -195,9 +195,8 @@ li {
     flex-direction: row;
     gap: 5px;
     align-items: center;
-    /* border-left: 0.5rem solid #8C5C4A;
-    border-right: 0.5rem solid #8C5C4A;
-    box-sizing: border-box; */
+    /* background-color: rgba(242, 160, 7, 0.5); */
+    /* box-sizing: border-box; */
     border-radius: 10px;
 }
 
