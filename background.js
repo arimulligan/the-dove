@@ -76,6 +76,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         blockCurrentURL(request.mode);
     } else if (request.cmd === 'CLOSE_TAB') {
         closeCurrentTab(request.milliseconds);
+    } else if (request.cmd === 'SHOW_DOVE') {
+        runReminderLogic();
     }
     return true;
 });
@@ -94,8 +96,17 @@ function startCountdown() {
             stopCountdown();
             counterToMinute = 0;
             chrome.storage.sync.get('mode', (data) => {
-                const mode = data.mode;
-                chrome.storage.sync.set({ mode: mode === 'Work' ? 'Rest' : 'Work' });
+                const mode = data.mode === 'Work' ? 'Rest' : 'Work';
+                chrome.storage.sync.set({ mode: mode });
+
+                const message =`Get ready to ${mode.toLowerCase()}!`;
+                chrome.notifications.create({
+                    type: 'basic',
+                    iconUrl: 'icons/doveLogo128.png',
+                    title: `Switch to ${mode} mode`,
+                    message: message,
+                    priority: 2
+                });
             });
         }
     }, 1000); // 1000 == 1 secs, 60000 == 1 minute

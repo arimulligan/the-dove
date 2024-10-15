@@ -66,6 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <h4 id="remIntervalsValue"></h4>
                             </div>
                         </div>
+                        <div class="row-container">
+                            <h4>Make dove fly down on current page?</h4>
+                            <div class="column-container">
+                                <button id="showDoveNow" class="edit-buttons">Show dove!</button>
+                                <h4 style="font-size:10px;">You need to be on a page with a valid URL (e.g. not a new tab).</h4>
+                            </div>
+                        </div>
                     </div>
                     <h3 style="font-size:20px; border-bottom:5px solid #0388A6;">Strict Mode:</h3>
                     <div class="column-container">
@@ -441,7 +448,7 @@ function doCountdownTimer(isWork) {
         } else {
             startBtn.style.display = "block";
         }
-        checkIfBackgroundScriptWorks();
+        checkIfBackgroundScriptWorks("Can't fetch current countdown time, sorry.");
     });
     startBtn.addEventListener('click', () => {
         const mode = isWork ? 'Work' : 'Rest';
@@ -477,7 +484,7 @@ function doCountdownTimer(isWork) {
 
     function startTimer() {
         chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: totalTime }, ()=>{
-            checkIfBackgroundScriptWorks();
+            checkIfBackgroundScriptWorks("Can't start timer, try again.");
         });
         continueTimer();
     }
@@ -568,7 +575,7 @@ function loadSettings() {
         value.textContent = time[0]+ " hour(s), and "+time[1]+" mins.";
     });
     input.addEventListener("mouseup", (event) => {
-        const reminderInterval = event.target.value * 3600000; // Convert hours to milliseconds
+        const reminderInterval = event.target.value * 60; // Convert hours to minutes
         chrome.storage.sync.set({ reminderInterval: reminderInterval }, () => {
             alert('I will now fly down and remind you \nthrough quotes, verses, and sassy questions every: \n\n'+ value.textContent);
         });
@@ -589,7 +596,7 @@ function loadSettings() {
                 chrome.storage.local.set({ [storageVar]: !settingOnOrOff }, () => {
                     toggleInteractionElem.innerHTML = newSetting ? 'Turn Off' : 'Turn On';
                     chrome.runtime.sendMessage({ cmd: 'RELOAD' }, ()=> {
-                        checkIfBackgroundScriptWorks();
+                        checkIfBackgroundScriptWorks("Can't reload page, try again.");
                     });
                 });
             });
@@ -599,6 +606,13 @@ function loadSettings() {
     onOrOffButton('showDoveIndefinitely', 'onOrOff');
     onOrOffButton('showEditTimers', 'editTimersOnOff');
     onOrOffButton('showDeleteBin', 'unblockOnOff');
+
+    const showDoveNow = document.getElementById("showDoveNow");
+    showDoveNow.addEventListener('click', () => {
+        chrome.runtime.sendMessage({ cmd: 'SHOW_DOVE' }, ()=> {
+            checkIfBackgroundScriptWorks("Can't show the dove on this page, try another URL.");
+        });
+    });
 }
 
 function getMinutesHours(event) {
@@ -610,10 +624,9 @@ function getMinutesHours(event) {
     return [hours, minutes];
 }
 
-function checkIfBackgroundScriptWorks() {
+function checkIfBackgroundScriptWorks(message) {
     if (chrome.runtime.lastError) {
         // Create a notification to inform the user
-        const message = JSON.stringify(chrome.runtime.lastError);
         chrome.notifications.create({
             type: 'basic',
             iconUrl: '/icons/doveLogo128.png',
