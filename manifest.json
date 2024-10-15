@@ -17,7 +17,7 @@
         }
     ],
     "permissions": ["storage", "scripting", "activeTab", "tabs",
-    "declarativeNetRequest", "declarativeNetRequestWithHostAccess", "notifications"],
+    "declarativeNetRequest", "declarativeNetRequestWithHostAccess", "notifications", "alarms"],
     "host_permissions": ["<all_urls>", "*://*/*"],
     "background": {
         "service_worker": "background.js"
