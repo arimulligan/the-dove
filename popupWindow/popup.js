@@ -53,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                 </ul>`,
         settingsTab: `<h2>Settings</h2>
-                    <h3 style="font-size:20px; border-bottom:5px solid #0388A6;">Interactive Dove Reminders:</h3>
+                    <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px;">Interactive Dove Reminders:</h3>
                     <div class="column-container">
                         <div class="row-container">
                             <h4>Turn on/off reminders indefinitely</h4>
@@ -74,7 +74,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                     </div>
-                    <h3 style="font-size:20px; border-bottom:5px solid #0388A6;">Strict Mode:</h3>
+                    <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px;">Strict Mode:</h3>
                     <div class="column-container">
                         <div class="row-container">
                             <h4>Get tempted to unblock sites</h4>
@@ -220,6 +220,7 @@ function addTaskToDOM(section, task) {
     taskSpan.id = task.id;
     taskSpan.textContent = task.content;
     taskSpan.contentEditable = true;
+    taskSpan.style.cursor = "text";
     taskSpan.addEventListener('dragstart', (e) => {
         e.preventDefault(); // make text not draggable (bug fix)
     });
@@ -235,11 +236,9 @@ function addTaskToDOM(section, task) {
     const prettyBulletPoint = document.createElement('div');
     prettyBulletPoint.id = 'bulletPoint';
 
-    listItem.appendChild(document.createElement('div'))
     listItem.appendChild(prettyBulletPoint);
     listItem.appendChild(taskSpan);
     listItem.appendChild(deleteButton);
-    listItem.appendChild(document.createElement('div'))
     taskList.parentNode.insertBefore(listItem, taskList.nextSibling);
 }
 
@@ -272,7 +271,7 @@ function deleteTask(section, taskId) {
 
 function getTasksFromStorage() {
     const tasks = localStorage.getItem('tasks');
-    if (!tasks || tasks === 'undefined' || tasks === "{\"NotDone\":[],\"Doing\":[],\"Done\":[]}") {
+    if (!tasks || tasks === 'undefined') {
         return {
             'NotDone': [{
                 id: "task0",
@@ -299,7 +298,7 @@ function makeTaskDraggable(sortableList) {
     const allDraggableElements = [...sortableList.querySelectorAll("ul div")];
 
     sortableList.addEventListener("dragstart", (e) => {
-        allDraggableElements.forEach((el) => el.style.borderBottom = '5px solid #0388A6');
+        allDraggableElements.forEach((el) => el.style.border = '5px solid #04668C');
         draggedItem = e.target;
         setTimeout(() => {
             e.target.style.display = "none";
@@ -307,7 +306,7 @@ function makeTaskDraggable(sortableList) {
     });
 
     sortableList.addEventListener("dragend", (e) => {
-        allDraggableElements.forEach((el) => el.style.borderBottom = '5px solid #0388A6');
+        allDraggableElements.forEach((el) => el.style.border = '5px solid #04668C');
         setTimeout(() => {
             e.target.style.display = "";
             draggedItem = null;
@@ -317,7 +316,7 @@ function makeTaskDraggable(sortableList) {
 
     sortableList.addEventListener("dragover", (e) => {
         e.preventDefault();
-        allDraggableElements.forEach((el) => el.style.borderBottom = '5px solid #0388A6');
+        allDraggableElements.forEach((el) => el.style.border = '5px solid #04668C');
 
         let afterElement = getDragAfterElement(sortableList, e.clientY);
         if (afterElement) {
@@ -327,9 +326,9 @@ function makeTaskDraggable(sortableList) {
                     sibling = sibling.previousElementSibling;
                 }
                 afterElement = sibling;
-                afterElement.style.borderBottom = '5px solid #8C5C4A';
+                afterElement.style.border = '5px dashed #04668C';
             }
-            afterElement.style.borderBottom = '5px solid #8C5C4A';
+            afterElement.style.border = '5px dashed #04668C';
             // Insert after the hovered element by using insertBefore and nextSibling
             try {
                 sortableList.insertBefore(draggedItem, afterElement.nextSibling);
