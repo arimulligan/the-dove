@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="row-container">
                             <h4>Change the reminder frequency here</h4>
                             <div class="column-container">
-                                <input id="remIntervals" type="range" min="0.25" max="23.75" step="0.25" style="width: 90%;" value="1.5"></input>
+                                <input id="remIntervals" type="range" min="0.017" max="5.0" style="width: 90%;" step="0.017"></input>
                                 <h4 id="remIntervalsValue"></h4>
                             </div>
                         </div>
@@ -565,9 +565,13 @@ function loadSettings() {
             const hours = Math.floor(totalMinutes / 60);
             const minutes = totalMinutes % 60;
             input.value = hours + (minutes / 60);
-            value.textContent = hours+ " hour(s), and "+minutes+" mins.";
+            if (hours == 0 || minutes == 0) {
+                value.textContent = "0 hour(s), and 1 min.";
+            } else {
+                value.textContent = hours+ " hour(s), and "+minutes+" mins.";
+            }
         } else {
-            value.textContent = "1 hour(s), and 30 mins.";
+            value.textContent = "0 hour(s), and 1 min.";
         }
     });
     input.addEventListener("input", (event) => {
