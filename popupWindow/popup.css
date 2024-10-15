@@ -189,12 +189,16 @@ ul div {
 }
 
 li {
-    cursor: grab;
+    cursor: move;
     display: flex;
     justify-content:space-between;
     flex-direction: row;
     gap: 5px;
     align-items: center;
+    /* border-left: 0.5rem solid #8C5C4A;
+    border-right: 0.5rem solid #8C5C4A;
+    box-sizing: border-box; */
+    border-radius: 10px;
 }
 
 .notDrag {
@@ -206,16 +210,17 @@ span {
     color:#F28705;
     width: 75vw;
     word-wrap:break-word;
+    cursor: text;
 }
 
 #bulletPoint {
     width: 25px;
     height: 25px;
-    background-image: url('/images/leafBulletPoint.png');
+    background-image: url('/images/draggableBulletUI.png');
     background-size: contain;
     background-repeat: no-repeat;
     border-bottom: none !important;
-    margin-right: 15px;
+    /* margin-right: 15px; */
 }
 
 /* for countdown timer */

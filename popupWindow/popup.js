@@ -234,9 +234,11 @@ function addTaskToDOM(section, task) {
     const prettyBulletPoint = document.createElement('div');
     prettyBulletPoint.id = 'bulletPoint';
 
+    listItem.appendChild(document.createElement('div'))
     listItem.appendChild(prettyBulletPoint);
     listItem.appendChild(taskSpan);
     listItem.appendChild(deleteButton);
+    listItem.appendChild(document.createElement('div'))
     taskList.parentNode.insertBefore(listItem, taskList.nextSibling);
 }
 
@@ -248,8 +250,13 @@ function editTask(section, taskSpan) {
             taskSpan.contentEditable = true;
             taskSpan.focus();
         } else {
-            task.content = taskSpan.textContent;
-            saveTasksToStorage(taskList);
+            if (taskSpan.textContent === "") {
+                console.error("here")
+                deleteTask(section, taskSpan.id);
+            } else {
+                taskList[section].find(t => t.id === taskSpan.id).content = taskSpan.textContent;
+                saveTasksToStorage(taskList);
+            }
         }
     }
 }
@@ -262,9 +269,12 @@ function deleteTask(section, taskId) {
 
 function getTasksFromStorage() {
     const tasks = localStorage.getItem('tasks');
-    if (!tasks || tasks === 'undefined') {
+    if (!tasks || tasks === 'undefined' || tasks === "{\"NotDone\":[],\"Doing\":[],\"Done\":[]}") {
         return {
-            'NotDone': [],
+            'NotDone': [{
+                id: "task0",
+                content: "Your first task! Drag/drop, edit, or delete this."
+            }],
             'Doing': [],
             'Done': []
         };
