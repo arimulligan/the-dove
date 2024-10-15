@@ -76,7 +76,10 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         blockCurrentURL(request.mode);
     } else if (request.cmd === 'CLOSE_TAB') {
         closeCurrentTab(request.milliseconds);
+    } else if (request.cmd === 'SHOW_DOVE') {
+        runReminderLogic();
     }
+    return true;
 });
 
 function startCountdown() {
@@ -93,8 +96,17 @@ function startCountdown() {
             stopCountdown();
             counterToMinute = 0;
             chrome.storage.sync.get('mode', (data) => {
-                const mode = data.mode;
-                chrome.storage.sync.set({ mode: mode === 'Work' ? 'Rest' : 'Work' });
+                const mode = data.mode === 'Work' ? 'Rest' : 'Work';
+                chrome.storage.sync.set({ mode: mode });
+
+                const message =`Get ready to ${mode.toLowerCase()}!`;
+                chrome.notifications.create({
+                    type: 'basic',
+                    iconUrl: 'icons/doveLogo128.png',
+                    title: `Switch to ${mode} mode`,
+                    message: message,
+                    priority: 2
+                });
             });
         }
     }, 1000); // 1000 == 1 secs, 60000 == 1 minute
@@ -121,7 +133,7 @@ function reloadPage() {
                     !error.message.startsWith("Cannot access contents of url \"chrome") &&
                     !error.message.startsWith("Cannot access a chrome:// URL")
                 ) {
-                    const message = `Cannot inject script into this restricted page.`;
+                    const message = 'Cannot inject script into this page, sorry.';
                     chrome.notifications.create({
                         type: 'basic',
                         iconUrl: 'icons/doveLogo128.png',
@@ -141,7 +153,8 @@ function reloadPage() {
 
 // for the dove reminder intervals
 const DYNAMIC_SCRIPT_ID = 'show-dove-reminders';
-let reminderTimer;
+const ALARM_NAME = 'dove-reminder';
+const debug = true;
 
 async function registerContentScript(tabId) {
     // Check if the content script is already registered
@@ -165,63 +178,59 @@ async function registerContentScript(tabId) {
     });
 }
 
-const debug = false; // make dove turn up faster.
-function setReminder(interval) {
+async function createReminder(interval) {
     if (debug) {
-        interval = 10000; // 10 seconds
-    }
-    if (reminderTimer) {
-        clearInterval(reminderTimer);
+        interval = 0.5; // 30 seconds for testing
     }
 
-    let executionCount = 0;
-    const runReminderLogic = async (count) => {
-        chrome.storage.local.get(['showDoveIndefinitely'], async (result) => {
-            const showDoveIndefinitely = result.showDoveIndefinitely ?? true;
-            if (showDoveIndefinitely) {
-                chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-                    const activeTab = tabs[0];
-                    try {
-                        if (tabs.length > 0) {
-                            const activeTabId = activeTab.id;
-                            await registerContentScript(activeTabId); // Ensure content script is injected
-                            const seconds = (interval * count) / 100;
-                            // TODO: immplement the seconds functionality into content script
-                            chrome.tabs.sendMessage(activeTabId, { action: 'doveReminding', seconds: seconds });
-                        }
-                    } catch (error) {
-                        // Create a notification to inform the user
-                        const message = `Cannot inject script into restricted page: ${activeTab.url}`;
+    const alarm = await chrome.alarms.get(ALARM_NAME);
+    if (typeof alarm === 'undefined') {
+        chrome.alarms.create(ALARM_NAME, {
+            periodInMinutes: interval
+        });
+    }
+}
+
+async function runReminderLogic() {
+    chrome.storage.local.get(['showDoveIndefinitely'], async (result) => {
+        const showDoveIndefinitely = result.showDoveIndefinitely ?? true;
+        if (showDoveIndefinitely) {
+            chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+                if (tabs.length === 0) return; // No active tabs
+                const activeTab = tabs[0];
+                try {
+                    if (tabs.length > 0) {
+                        const activeTabId = activeTab.id;
+                        await registerContentScript(activeTabId); // Ensure content script is injected
+                        await chrome.tabs.sendMessage(activeTabId, { action: 'doveReminding' });
+                    }
+                } catch (error) {
+                    // Create a notification to inform the user
+                    if (error.message && error.message.startsWith("Cannot access a chrome:// URL")) {
+                        const message = "The Dove can't fly down right now, please make sure you have a valid URL,"
+                        + " or click the extension again for a refresh.";
                         chrome.notifications.create({
                             type: 'basic',
                             iconUrl: 'icons/doveLogo128.png',
-                            title: 'Dove Reminder Issue',
+                            title: 'Dove Reminder',
                             message: message,
                             priority: 2
                         });
-                        return;
                     }
-                });
-            }
-        });
-    };
-    runReminderLogic(executionCount);
-    reminderTimer = setInterval(() => {
-        executionCount++;
-        runReminderLogic(executionCount);
-    }, interval);
-}
-
-chrome.runtime.onStartup.addListener(() => {
-    chrome.storage.sync.get('reminderInterval', (data) => {
-        const interval = data.reminderInterval || 5400000; // Default to 1.5 hours
-        setReminder(interval);
+                    return;
+                }
+            });
+        }
     });
-});
+};
 
-chrome.storage.onChanged.addListener((changes) => {
+chrome.storage.onChanged.addListener(async (changes) => {
     if (changes.reminderInterval) {
-        setReminder(changes.reminderInterval.newValue);
+        chrome.alarms.clear(
+            ALARM_NAME,
+            async () => {
+                await createReminder(changes.reminderInterval.newValue);
+            });
     }
     // for URL blocking
     if (changes.blockedSitesRest || changes.blockedSitesWork || changes.mode) {
@@ -229,11 +238,14 @@ chrome.storage.onChanged.addListener((changes) => {
     }
 });
 
-chrome.windows.onCreated.addListener(async () => {
-    chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
-        if (tabs.length > 0) {
-            const activeTabId = tabs[0].id;
-            await registerContentScript(activeTabId); // Ensure content script is injected
-        }
-    });
+// Every time the user enters their URL, the dove shows up.
+chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+    if (changeInfo.url) {
+        chrome.storage.sync.get('reminderInterval', async (data) => {
+            const interval = data.reminderInterval || 90; // 1 hour and a half
+            await createReminder(interval);
+        });
+    }
 });
+
+chrome.alarms.onAlarm.addListener(runReminderLogic);
