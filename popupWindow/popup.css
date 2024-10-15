@@ -98,6 +98,7 @@ h4 {
 /* Input and Button Styling */
 input[type="text"], input[type="text"]:hover {
     border: none;
+    color: #F28705;
 }
 
 button {
