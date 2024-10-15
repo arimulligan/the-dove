@@ -219,6 +219,7 @@ function addTaskToDOM(section, task) {
     const taskSpan = document.createElement('span');
     taskSpan.id = task.id;
     taskSpan.textContent = task.content;
+    taskSpan.contentEditable = true;
     taskSpan.addEventListener('dragstart', (e) => {
         e.preventDefault(); // make text not draggable (bug fix)
     });
@@ -246,18 +247,20 @@ function editTask(section, taskSpan) {
     const taskList = getTasksFromStorage();
     const task = taskList[section].find(t => t.id === taskSpan.id);
     if (task !== undefined){
-        if (!taskSpan.isContentEditable) {
-            taskSpan.contentEditable = true;
-            taskSpan.focus();
-        } else {
+        taskSpan.focus();
+        // Add blur event to save when done editing
+        taskSpan.addEventListener('blur', () => {
             if (taskSpan.textContent === "") {
-                console.error("here")
                 deleteTask(section, taskSpan.id);
             } else {
-                taskList[section].find(t => t.id === taskSpan.id).content = taskSpan.textContent;
+                task.content = taskSpan.textContent;
+                taskList[section] = taskList[section].map(t =>
+                    t.id === task.id ? task : t
+                );
                 saveTasksToStorage(taskList);
             }
-        }
+        });
+        
     }
 }
 
