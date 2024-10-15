@@ -99,11 +99,11 @@ function startCountdown() {
                 const mode = data.mode === 'Work' ? 'Rest' : 'Work';
                 chrome.storage.sync.set({ mode: mode });
 
-                const message =`Get ready to ${mode.toLowerCase()}!`;
+                const message =`Time is up... get ready to ${mode.toLowerCase()}!`;
                 chrome.notifications.create({
                     type: 'basic',
                     iconUrl: 'icons/doveLogo128.png',
-                    title: `Switch to ${mode} mode`,
+                    title: `Switched to ${mode} mode`,
                     message: message,
                     priority: 2
                 });
