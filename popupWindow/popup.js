@@ -318,7 +318,12 @@ function makeTaskDraggable(sortableList) {
             }
             afterElement.style.borderBottom = '5px solid #8C5C4A';
             // Insert after the hovered element by using insertBefore and nextSibling
-            sortableList.insertBefore(draggedItem, afterElement.nextSibling);
+            try {
+                sortableList.insertBefore(draggedItem, afterElement.nextSibling);
+            } catch (error) {
+                // functionality still works, because it throws the error when it's in a temporarily invliad state (when the user is still hovering)
+            }
+                
         }
     });
 
@@ -328,7 +333,7 @@ function makeTaskDraggable(sortableList) {
         ),];
         return draggableElements.reduce((closest, child) => {
             const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
+            const offset = y - box.top - box.height;
             if (offset < 0 && offset > closest.offset) {
                 return { offset: offset, element: child };
             } else {
