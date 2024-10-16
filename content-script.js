@@ -195,7 +195,7 @@ function getDoveTextContainer(flyDoveImg, risingBranchImg, flyingDoveGIFUrl) {
             // show button user can click and then the dove flys away.
             const button = document.createElement('button');
             button.innerText = options;
-            button.style = 'popupWindow/popup.css';
+            button.style = 'popupWindow/popupCSS.css';
             button.addEventListener('click', (event)=> {
                 flyAway(doveTextContainer, flyDoveImg, risingBranchImg, flyingDoveGIFUrl);
             })
