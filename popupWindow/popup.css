@@ -334,4 +334,41 @@ button#redirectBtn {
 }
 input[type="range"] {
     accent-color: #F28705;
- }
+}
+
+/* WORK & REST DOVE */
+.dove-text {
+    color: #F2A007;
+    background-color: #8C5C4A;
+    padding: 20px;
+    border-radius: 50px;
+}
+
+.dove-countdown-before, 
+.dove-countdown, 
+.dove-countdown-after {
+    text-align: center;
+    font-weight: 900;
+    padding: 20px;
+}
+
+.dove-countdown-before {
+    color: rgba(242, 160, 7, 0.5);
+    background-color: rgba(140, 92, 74, 0.5);
+    border-radius: 50px;
+    font-size: large;
+}
+.dove-countdown {
+    color: #F28705;
+    background-color: rgba(140, 92, 74, 1);
+    border-radius: 50px;
+    font-size: larger;
+    padding: 30px;
+}
+
+.dove-countdown-after {
+    color: rgba(242, 160, 7, 0.5);
+    background-color: rgba(140, 92, 74, 0.5);
+    border-radius: 50px;
+    font-size: large;
+}
