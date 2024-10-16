@@ -17,15 +17,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 </ul>
                 <h4>Remember: Double click the dove or branch to make them fly away...</h4>`,
         workTab: `<h2>Work</h2>
-                <div class="timer-container">
-                    <span class="circular-bg">
-                        <span class="circular-progress">
-                        <button id="startBtn" class="edit-buttons">Start Timer</button>
-                            <input id="editTimerRange" type="range" min="0.167" max="6" step="0.167" value="0.833"></input>
-                            <p id="showTimeEdits"></p>
-                            <h3 class="countdown"></h3>
-                        </span>
-                    </span>
+                <div class="column-container">
+                    <div class="row-container" id="displayCountdown">
+                        <div class="column-container">
+                            <div class="dove-countdown-before" id="countdownBefore">00:00</div>
+                            <div class="dove-countdown" id="countdownDuring">00:00</div>
+                            <div class="dove-countdown-after" id="countdownAfter">00:00</div>
+                        </div>
+                        <div class="column-container">
+                        <div class="dove-text" id="cyclesDisplay">Cycles left: 4</div>
+                        <img src="/images/standingDoveWaving.gif" alt="Standing dove waving" width="200" height="185">
+                        </div>
+                    </div>
+                    <div class="column-container" id="optionsCountdown">
+                    <label for="cycles">Cycles:</label>
+                    <input type="number" id="cycles" min="1" value="4"><br>
+                    
+                    <label for="work">Work Interval (minutes):</label>
+                    <input type="number" id="work" min="1" value="25"><br>
+                    
+                    <label for="rest">Rest Interval (minutes):</label>
+                    <input type="number" id="rest" min="1" value="5"><br>
+                    <button id="startBtn" class="edit-buttons">Start Timer</button>
+                    </div>
                 </div>
                 <h2 style="font-size: 20px;">Distracted on certain sites?</h2>
                 <ul id="taskList">
@@ -543,7 +557,68 @@ function doCountdownTimer(isWork) {
 
 // WORK TAB
 function loadWorkTab() {
-    doCountdownTimer(true);
+    // doCountdownTimer(true);
+    const countdownBefore = document.getElementById('countdownBefore');
+    const countdownDuring = document.getElementById('countdownDuring');
+    const countdownAfter = document.getElementById('countdownAfter');
+    const cyclesDisplay = document.getElementById('cyclesDisplay');
+    const displayCountdown = document.getElementById('displayCountdown');
+
+    const cycles = document.getElementById('cycles').value;
+    const workDuration = document.getElementById('work').value;
+    const restDuration = document.getElementById('rest').value;
+    const optionsCountdown = document.getElementById('optionsCountdown');
+
+    chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
+        if (response.remainingTime === 0 && response.currentCycle === 0) {
+            displayCountdown.style.display = "none";
+            optionsCountdown.style.display = "flex";
+        } else {
+            displayCountdown.style.display = "flex";
+            optionsCountdown.style.display = "none";
+        }
+    });
+    document.getElementById('startBtn').addEventListener('click', () => {
+        chrome.runtime.sendMessage({
+          cmd: "START_TIMER",
+          cycles: parseInt(cycles),
+          workDuration: parseInt(workDuration),
+          restDuration: parseInt(restDuration)
+        }, (response) => {
+          console.error(response.status);
+        });
+    });
+    
+    // Listen for updates from the background script
+    chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+        if (request.action === "updateTimerState") {
+            const remainingTime = request.remainingTime;
+
+            countdownBefore.textContent = formatTime(remainingTime -1);
+            countdownDuring.textContent = formatTime(remainingTime);
+            countdownAfter.textContent = formatTime(remainingTime +1);
+            // // Trigger animations
+            // countdownBefore.style.transform = 'translateY(-100%)'; // Move into view
+            // countdownDuring.style.transform = 'translateY(0)'; // Move into view
+
+            // // Delay for before and during animation
+            // setTimeout(() => {
+            //     countdownBefore.style.transform = 'translateY(0)'; // Move out of view
+            //     countdownDuring.style.transform = 'translateY(100%)'; // Move out of view
+            // }, 1000); // Adjust time for your animation duration
+
+            cyclesDisplay.textContent = `Cycles left: ${request.totalCycles - request.currentCycle}`;
+            displayCountdown.style.display = "flex";
+            optionsCountdown.style.display = "none";
+        }
+    });
+    
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const secs = seconds % 60;
+        return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+    }
+      
     doBlockWebsiteButtons("Work");
 }
 
