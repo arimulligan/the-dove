@@ -172,7 +172,11 @@ function getDoveTextContainer(flyDoveImg, risingBranchImg, flyingDoveGIFUrl) {
                             const minutes = selectedChoice.match(new RegExp("\\d+"));
                             // change mode to rest mode, and set the timer to _ minutes.
                             chrome.storage.sync.set({ mode: 'Rest' });
-                            chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: minutes });
+                            chrome.runtime.sendMessage({ 
+                                cmd: 'START_TIMER', 
+                                cycles: 1,
+                                workDuration: 25,
+                                restDuration: parseInt(minutes) });
                             questionElement.textContent = `You are now in rest mode for ${minutes} minutes. Enjoy!`;
                         }
                     } else {
