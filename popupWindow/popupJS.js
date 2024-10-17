@@ -124,14 +124,22 @@ document.addEventListener('DOMContentLoaded', () => {
     const wrongContent = {
         workTab: `<div class="bg-container other">
         <h2>Work</h2>
-        <h2>You're in rest mode!</h2>
-        <button id="endRestEarly" class="edit-buttons" style="width: 130px;">End rest early</button>
+        <div class="row-container">
+            <div class="dove-text" style="border-top-right-radius: 0px; margin-right: 10px;">You're in rest mode!</div>
+            <img src="/images/standingBird.png" alt="Standing dove" width="200" height="185">
+        </div>
+        <button id="endCycletoWork" class="edit-buttons" style="width: 200px;">End rest cycle early</button>
+        <button id="endPomodoro" class="edit-buttons"  style="width: 200px;">End pomodoro and rest</button>
         </div>
         `,
         restTab: `<div class="bg-container other">
         <h2>Rest</h2>
-        <h2>You're in work mode!</h2>
-        <button id="endWorkEarly" class="edit-buttons"  style="width: 130px;">End work early</button>
+        <div class="row-container">
+            <div class="dove-text" style="border-top-right-radius: 0px; margin-right: 10px;">You're in work mode!</div>
+            <img src="/images/standingBird.png" alt="Standing dove" width="200" height="185">
+        </div>
+        <button id="endCycletoRest" class="edit-buttons"  style="width: 200px;">End work cycle early</button>
+        <button id="endPomodoro" class="edit-buttons"  style="width: 200px;">End pomodoro and rest</button>
         </div>
         `,
     };
@@ -486,7 +494,7 @@ function doCountdownTimer(isWork) {
     if (isWork) {
         optionsCountdown = document.getElementById('optionsCountdown');
         
-        if (remainingTime === 0 && currentCycle === 0 || !remainingTime || !currentCycle) {
+        if (!remainingTime || remainingTime === 0) {
             displayCountdown.style.display = "none";
             optionsCountdown.style.display = "flex";
         } else {
@@ -517,7 +525,7 @@ function doCountdownTimer(isWork) {
             });
         });
     } else {
-        if (remainingTime === 0 && currentCycle === 0 || !remainingTime || !currentCycle) {
+        if (!remainingTime || remainingTime === 0) {
             cyclesDisplay.innerHTML = "Go into the work tab to start a pomodoro session...";
             countdownAfter.style.display = "none";
             countdownBefore.style.display = "none";
@@ -526,6 +534,7 @@ function doCountdownTimer(isWork) {
             const smallBranchURL = chrome.runtime.getURL('/images/smallBranch.png');
             const smlBranchImg = document.createElement('img');
             smlBranchImg.src = smallBranchURL;
+            smlBranchImg.id = "smallBranchURL";
             smlBranchImg.style.transform = "rotate(90deg)";
             smlBranchImg.style.left = "17%";
             smlBranchImg.style.position = "relative";
@@ -546,7 +555,16 @@ function doCountdownTimer(isWork) {
 
             cyclesDisplay.textContent = `Cycles left: ${request.totalCycles - request.currentCycle}`;
             displayCountdown.style.display = "flex";
-            if (isWork) optionsCountdown.style.display = "none";
+            if (isWork) {
+                optionsCountdown.style.display = "none";
+            } else {
+                countdownAfter.style.display = "block";
+                countdownBefore.style.display = "block";
+                countdownDuring.style.display = "block";
+                const smlBranchImg = document.getElementById('smallBranchURL');
+                if (smlBranchImg) smlBranchImg.remove();
+                displayCountdown.style.justifyContent = "space-between";
+            }
         }
     });
     
@@ -559,16 +577,23 @@ function doCountdownTimer(isWork) {
 
 function doChangedTab(isWork){
     const modeString = isWork ? "Work" : "Rest";
-    const endModeButton = document.getElementById(`end${isWork ? "Rest" : "Work"}Early`);
+    const endPomodoroButton = document.getElementById('endPomodoro');
+    const endCycle = document.getElementById(`endCycleto${modeString}`);
     chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
-        if (response.remainingTime === 0 && response.currentCycle === 0) {
-            endModeButton.innerHTML = `Switch to ${modeString.toLowerCase()} mode`;
-            endModeButton.style.width = "190px";
-            endModeButton.addEventListener('click', ()=> {
+        const remainingTime = response.remainingTime;
+        const currentCycle = response.currentCycle;
+        if (!remainingTime || remainingTime === 0) {
+            endPomodoroButton.innerHTML = `Switch to ${modeString.toLowerCase()} mode`;
+            endCycle.style.display = "none";
+            endPomodoroButton.addEventListener('click', ()=> {
                 chrome.storage.sync.set({ mode: modeString });
             });
         } else {
-            endModeButton.addEventListener('click', ()=> {
+            endCycle.style.display = "block";
+            endCycle.addEventListener('click', ()=> {
+                chrome.runtime.sendMessage({ cmd: 'SKIP_CYCLE' });
+            });
+            endPomodoroButton.addEventListener('click', ()=> {
                 chrome.runtime.sendMessage({ cmd: 'STOP_TIMER' }, (response)=> {
                     if (chrome.runtime.lastError) {
                         console.error('Error in Dove extension:', chrome.runtime.lastError);

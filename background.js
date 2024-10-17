@@ -86,9 +86,8 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.cmd === 'STOP_TIMER') {
         resetTimer();
         sendResponse({ status: 'success' });
-    } else if (request.cmd === 'SKIP_CYCLE') { // TODO
+    } else if (request.cmd === 'SKIP_CYCLE') {
         skipCycle();
-        sendResponse({ status: 'success' });
     } else if (request.cmd === 'RELOAD') {
         reloadPage();
     } else if (request.cmd === 'BLOCK_CURRENT_URL') {
@@ -175,12 +174,25 @@ function resetTimer() {
 }
 
 function skipCycle() {
-    currentCycle++;
-    remainingTime = 0;
-    chrome.action.setBadgeText({ text: "" });
-    chrome.alarms.clearAll();
-    if (sendTimerSecs) clearInterval(sendTimerSecs);
-  }
+    if (isWorking) {
+        // Skip the current work session, switch to rest
+        remainingTime = restDuration * 60;
+        updateIcon("rest");
+        chrome.alarms.clear("work"); // Clear the current work alarm
+        chrome.alarms.create("rest", { delayInMinutes: restDuration }); // Start the rest period
+        isWorking = false;
+    } else {
+        // Skip the current rest session, switch to work
+        remainingTime = workDuration * 60;
+        updateIcon("work");
+        chrome.alarms.clear("rest"); // Clear the current rest alarm
+        chrome.alarms.create("work", { delayInMinutes: workDuration }); // Start the work period
+        isWorking = true;
+        currentCycle++; // Increase the cycle count when work starts again
+    }
+    sendTimerState(); // Send the updated timer state to the popup
+    updateModeSendNotif(true); // Send a notification about the mode switch
+}
 
 function reloadPage() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
