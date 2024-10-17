@@ -86,6 +86,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     } else if (request.cmd === 'STOP_TIMER') {
         resetTimer();
         sendResponse({ status: 'success' });
+    } else if (request.cmd === 'SKIP_CYCLE') { // TODO
+        skipCycle();
+        sendResponse({ status: 'success' });
     } else if (request.cmd === 'RELOAD') {
         reloadPage();
     } else if (request.cmd === 'BLOCK_CURRENT_URL') {
@@ -116,7 +119,7 @@ function updateModeSendNotif(isPomodoro) {
     : "You've finished your current pomodoro! Rest mode will be on until your next work session.";
     chrome.notifications.create({
         type: 'basic',
-        iconUrl: 'icons/doveLogo48.png',
+        iconUrl: 'icons/doveLogo128.png',
         title: `Switched to ${mode} interval.`,
         message: message,
         priority: 2
@@ -170,6 +173,14 @@ function resetTimer() {
   chrome.alarms.clearAll();
   if (sendTimerSecs) clearInterval(sendTimerSecs);
 }
+
+function skipCycle() {
+    currentCycle++;
+    remainingTime = 0;
+    chrome.action.setBadgeText({ text: "" });
+    chrome.alarms.clearAll();
+    if (sendTimerSecs) clearInterval(sendTimerSecs);
+  }
 
 function reloadPage() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {

@@ -484,11 +484,8 @@ function doCountdownTimer(isWork) {
     });
 
     if (isWork) {
-        const cycles = document.getElementById('cycles').value;
-        const workDuration = document.getElementById('work').value;
-        const restDuration = document.getElementById('rest').value;
         optionsCountdown = document.getElementById('optionsCountdown');
-
+        
         if (remainingTime === 0 && currentCycle === 0 || !remainingTime || !currentCycle) {
             displayCountdown.style.display = "none";
             optionsCountdown.style.display = "flex";
@@ -497,6 +494,9 @@ function doCountdownTimer(isWork) {
             optionsCountdown.style.display = "none";
         }
         document.getElementById('startBtn').addEventListener('click', () => {
+            const cycles = document.getElementById('cycles').value;
+            const workDuration = document.getElementById('work').value;
+            const restDuration = document.getElementById('rest').value;
             chrome.runtime.sendMessage({
               cmd: "START_TIMER",
               cycles: parseInt(cycles),
@@ -508,7 +508,7 @@ function doCountdownTimer(isWork) {
                     ${workDuration} minutes, and will be blocked out of all specified URLs.`
                     chrome.notifications.create({
                         type: 'basic',
-                        iconUrl: 'icons/doveLogo48.png',
+                        iconUrl: '/icons/doveLogo128.png',
                         title: 'Dove Reminder - Work',
                         message: message,
                         priority: 2
@@ -517,7 +517,6 @@ function doCountdownTimer(isWork) {
             });
         });
     } else {
-        console.error(remainingTime, currentCycle)
         if (remainingTime === 0 && currentCycle === 0 || !remainingTime || !currentCycle) {
             cyclesDisplay.innerHTML = "Go into the work tab to start a pomodoro session...";
             countdownAfter.style.display = "none";
@@ -539,7 +538,6 @@ function doCountdownTimer(isWork) {
     // Listen for updates from the background script
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (request.action === "updateTimerState") {
-            console.error("HERE NOW")
             const remainingTime = request.remainingTime;
 
             countdownBefore.textContent = formatTime(remainingTime -1);
