@@ -172,7 +172,11 @@ function getDoveTextContainer(flyDoveImg, risingBranchImg, flyingDoveGIFUrl) {
                             const minutes = selectedChoice.match(new RegExp("\\d+"));
                             // change mode to rest mode, and set the timer to _ minutes.
                             chrome.storage.sync.set({ mode: 'Rest' });
-                            chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: minutes });
+                            chrome.runtime.sendMessage({ 
+                                cmd: 'START_TIMER', 
+                                cycles: 1,
+                                workDuration: 25,
+                                restDuration: parseInt(minutes) });
                             questionElement.textContent = `You are now in rest mode for ${minutes} minutes. Enjoy!`;
                         }
                     } else {
@@ -195,7 +199,7 @@ function getDoveTextContainer(flyDoveImg, risingBranchImg, flyingDoveGIFUrl) {
             // show button user can click and then the dove flys away.
             const button = document.createElement('button');
             button.innerText = options;
-            button.style = 'popupWindow/popup.css';
+            button.style = 'popupWindow/popupCSS.css';
             button.addEventListener('click', (event)=> {
                 flyAway(doveTextContainer, flyDoveImg, risingBranchImg, flyingDoveGIFUrl);
             })

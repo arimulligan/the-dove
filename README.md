@@ -1,46 +1,63 @@
-# the-dove
-A Chrome plugin that helps you create peaceful breaks between productive study sessions. Flys down and chats to you. If time permits: when you are resting, you can play simple games with the dove.
+# The Dove: Website Blocker, Goal Setting, & Pomodoro
+A Chrome plugin that helps you create peaceful breaks between productive study sessions. 
+The Dove gives you verses or encouraging statements on your current tab. It blocks websites depending on the rest/work pomodoro interval, with a built in to-do list! It's your life balance helper.
 
-#### Specific Performance Benchmarks
-Some target numbers and industry best practices I aim to achieve:
+### Features:
+- **Interactive Dove**: On your active tab, the dove will fly down and talk to you with bible verses or maybe a question (you will also be able to reply). If you want the dove to fly away, simply double click it! If you want the dove to never fly down, you can change this in the settings too.
+- **Website Blocker**: Automatically blocks distracting websites during your work sessions and reopens access during rest periods.
+- **Pomodoro Timer**: Set your work/rest cycles, and let the timer guide you through productive intervals and breaks.
+- **Encouraging Messages**: Receive verses or uplifting statements on your current tab to motivate and inspire during your sessions.
+- **To-Do List**: Stay on top of your tasks with a built-in to-do list that helps you prioritize and manage your goals.
+- **Strict Mode**: Set how much you want to get tempted by removing 'stop timer' buttons, removing 'unblock website' buttons, and more!
+- **Notifications**: Desktop notifications inform users when it's time to switch between work and rest modes.
 
-1. **Load Time**
-   - **Target**: The extension should load within 100-300 milliseconds.
-   - **Measurement**: Use Chrome's Developer Tools (Performance tab) to capture the load time.
+### How It Works:
+1. **Start a Pomodoro Session**: Input the number of cycles and duration for both work and rest sessions.
+2. **Website Blocking**: During work periods, the extension blocks access to websites you choose. When a rest period begins, these sites will be accessible again (while your sites on the rest mode will be blocked).
+3. **Visual Timers and Reminders**: Keep track of your session with a countdown timer visible on the Chrome toolbar icon.
+4. **Cycle Skipping**: Need to skip a cycle? Simply click "Skip Cycle" from the popup to jump to the next phase, whether it’s a work or rest session. Unless you've turned this off in the settings' Strict Mode!
 
-2. **Memory Usage**
-   - **Target**: Keep memory usage below 50 MB for most extensions.
-   - **Measurement**: Monitor memory usage with Chrome's Task Manager (Shift + Esc).
 
-3. **Impact on Page Load Time**
-   - **Target**: Additional page load time caused by the extension should be less than 100 milliseconds.
-   - **Measurement**: Use Lighthouse or WebPageTest to compare page load times with and without the extension enabled.
+## Contribute
+If you want to edit, contribute, or make your own version of this Extension, here are the steps. Also, if you have an idea for adding something new, create an issue on the Github and I can see what I can do. You are also very welcome to make the feature yourself.
 
-4. **CPU Usage**
-   - **Target**: The extension should use less than 5% of CPU resources on average during idle state and minimal spikes during active use.
-   - **Measurement**: Monitor CPU usage using Chrome's Task Manager (Shift + Esc).
+### Installation
 
-5. **Network Requests**
-   - **Target**: Minimize the number of network requests, ideally less than 10 requests per page load. Ensure the total size of network requests is under 500 KB.
-   - **Measurement**: Use the Network tab in Chrome Developer Tools to analyze requests.
+1. Clone or download this repository:
+   ```bash
+   git clone https://github.com/arimulligan/the-dove.git
+   ```
 
-6. **Script Execution Time**
-   - **Target**: JavaScript execution time should be under 50 milliseconds per frame.
-   - **Measurement**: Use Chrome's Developer Tools (Performance tab) to measure script execution time.
+2. Open Chrome and go to the **Extensions** page:
+   - Navigate to `chrome://extensions/`.
+   - Enable **Developer mode** in the top right corner.
 
-7. **Battery Usage**
-   - **Target**: Minimize battery usage impact, aiming for less than a 5% increase in power consumption.
-   - **Measurement**: Use battery monitoring tools and Chrome's Task Manager to assess impact.
+3. Click on **Load unpacked** and select the directory where the project is located.
 
-8. **Error Rates**
-   - **Target**: Zero unhandled exceptions or errors logged in the console.
-   - **Measurement**: Monitor the console for errors using Chrome Developer Tools -> Console tab.
+4. The extension will be loaded into Chrome, and you should see its icon in the toolbar.
 
-9. **Responsiveness**
-   - **Target**: Ensure user interactions (e.g., clicks, scrolls) respond within 50 milliseconds.
-   - **Measurement**: Conduct user testing and use Chrome's Developer Tools (Performance tab) to monitor interaction response times.
+## Development
+This project uses Chrome Extension V3 APIs, including:
+- `chrome.runtime`
+- `chrome.alarms`
+- `chrome.notifications`
+- `chrome.storage.sync`
+- `chrome.action`
 
-10. **Accessibility**
-   - **Target**: Achieve a Lighthouse Accessibility score of 90 or above.
-   - **Measurement**: Use Lighthouse to run accessibility audits.
+If you want to modify or contribute to this project, follow these steps:
 
+1. Clone the repository and make changes to the `background.js`, `content-script.js`, or `popup.js` files as needed.
+2. After making changes, reload the extension in the Chrome **Extensions** page by clicking the **Reload** button.
+
+### Key Files
+- **`background.js`**: Manages the timer logic, alarms, blocking, and notifications.
+- **`content-script.js`**: The script which gets injected into the current active tab, has all the information on the dove flying down and the quotes it produces.
+- **`popup.js`**: All things in the popup extension - it handles the settings, the user input and communicates with `background.js` for the pomodoro timer and blocking sites.
+
+## Author Notes
+Thank you to MDDN390 at Victoria Univerisity of Wellington for giving me the time to create an awesome extension. Thanks to all the user testers, your feedback has helped me greatly!
+
+Feel free to add a review on the Chrome Web Store if you have enjoyed this extension.
+
+
+By Arianna Mulligan
