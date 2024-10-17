@@ -106,8 +106,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             <button id="unblockOnOff" class="edit-buttons"></button>
                         </div>
                         <div class="row-container">
-                            <h4>Edit the rest and work timers</h4>
-                            <button id="editTimersOnOff" class="edit-buttons"></button>
+                            <h4>Can end rest/work cycle early</h4>
+                            <button id="endCycleOnOff" class="edit-buttons"></button>
+                        </div>
+                        <div class="row-container">
+                            <h4>Can end pomodoro anytime</h4>
+                            <button id="endPomodoroOnOff" class="edit-buttons"></button>
                         </div>
                     </div>
             `
@@ -468,7 +472,8 @@ function doBlockWebsiteButtons(mode) {
                 };
                 listItem.appendChild(removeSite);
             } else {
-                listItem.style.paddingTop = '20px';
+                listItem.style.paddingTop = '10px';
+                listItem.style.paddingBottom = '10px';
             }
         })
 
@@ -579,29 +584,54 @@ function doChangedTab(isWork){
     const modeString = isWork ? "Work" : "Rest";
     const endPomodoroButton = document.getElementById('endPomodoro');
     const endCycle = document.getElementById(`endCycleto${modeString}`);
-    chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
-        const remainingTime = response.remainingTime;
-        const currentCycle = response.currentCycle;
-        if (!remainingTime || remainingTime === 0) {
-            endPomodoroButton.innerHTML = `Switch to ${modeString.toLowerCase()} mode`;
-            endCycle.style.display = "none";
-            endPomodoroButton.addEventListener('click', ()=> {
-                chrome.storage.sync.set({ mode: modeString });
+    chrome.storage.local.get(['showEndPomodoro', 'showEndCycle'], (result) => {
+        const showEndCycle = result['showEndCycle'];
+        const showEndPomodoro = result['showEndPomodoro'];
+
+        console.error(showEndCycle, showEndPomodoro)
+
+        if (showEndCycle || showEndPomodoro) {
+            chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
+                const remainingTime = response.remainingTime;
+                if (!remainingTime || remainingTime === 0) {
+                    endCycle.style.display = "none";
+                    if (showEndPomodoro) {
+                        endPomodoroButton.style.display = "block";
+                        endPomodoroButton.innerHTML = `Switch to ${modeString.toLowerCase()} mode`;
+                        endPomodoroButton.addEventListener('click', ()=> {
+                            chrome.storage.sync.set({ mode: modeString });
+                        });
+                    } else {
+                        endPomodoroButton.style.display = "none";
+                    }
+                } else {
+                    if (showEndCycle) {
+                        endCycle.style.display = "block";
+                        endCycle.addEventListener('click', ()=> {
+                            chrome.runtime.sendMessage({ cmd: 'SKIP_CYCLE' });
+                        });
+                    } else {
+                        endCycle.style.display = "none";
+                    }
+                    if (showEndPomodoro) {
+                        endPomodoroButton.style.display = "block";
+                        endPomodoroButton.addEventListener('click', ()=> {
+                            chrome.runtime.sendMessage({ cmd: 'STOP_TIMER' }, (response)=> {
+                                if (chrome.runtime.lastError) {
+                                    console.error('Error in Dove extension:', chrome.runtime.lastError);
+                                } else if (response && response.status === 'success') {
+                                    chrome.storage.sync.set({ mode: modeString });
+                                }
+                            });
+                        });
+                    } else {
+                        endPomodoroButton.style.display = "none";
+                    }
+                }
             });
         } else {
-            endCycle.style.display = "block";
-            endCycle.addEventListener('click', ()=> {
-                chrome.runtime.sendMessage({ cmd: 'SKIP_CYCLE' });
-            });
-            endPomodoroButton.addEventListener('click', ()=> {
-                chrome.runtime.sendMessage({ cmd: 'STOP_TIMER' }, (response)=> {
-                    if (chrome.runtime.lastError) {
-                        console.error('Error in Dove extension:', chrome.runtime.lastError);
-                    } else if (response && response.status === 'success') {
-                        chrome.storage.sync.set({ mode: modeString });
-                    }
-                });
-            });
+            endPomodoroButton.style.display = "none";
+            endCycle.style.display = "none";
         }
     });
 }
@@ -680,7 +710,8 @@ function loadSettings() {
     }
 
     onOrOffButton('showDoveIndefinitely', 'onOrOff');
-    onOrOffButton('showEditTimers', 'editTimersOnOff');
+    onOrOffButton('showEndPomodoro', 'endPomodoroOnOff');
+    onOrOffButton('showEndCycle', 'endCycleOnOff');
     onOrOffButton('showDeleteBin', 'unblockOnOff');
 
     const showDoveNow = document.getElementById("showDoveNow");
