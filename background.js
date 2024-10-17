@@ -227,7 +227,7 @@ function reloadPage() {
 // for the dove reminder intervals
 const DYNAMIC_SCRIPT_ID = 'show-dove-reminders';
 const ALARM_NAME = 'dove-reminder';
-const debug = true;
+const debug = false;
 
 async function registerContentScript(tabId) {
     // Check if the content script is already registered
