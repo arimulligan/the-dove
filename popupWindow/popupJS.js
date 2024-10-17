@@ -18,6 +18,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h4>Remember: Double click the dove or branch to make them fly away...</h4>`,
         workTab: `<h2>Work</h2>
                 <div class="column-container">
+                <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px; width: 100%;">Pomodoro</h3>
                     <div class="row-container" id="displayCountdown">
                         <div class="column-container">
                             <div class="dove-countdown-before" id="countdownBefore">00:00</div>
@@ -30,44 +31,54 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
                     <div class="column-container" id="optionsCountdown">
-                    <label for="cycles">Cycles:</label>
-                    <input type="number" id="cycles" min="1" value="4"><br>
-                    
-                    <label for="work">Work Interval (minutes):</label>
-                    <input type="number" id="work" min="1" value="25"><br>
-                    
-                    <label for="rest">Rest Interval (minutes):</label>
-                    <input type="number" id="rest" min="1" value="5"><br>
-                    <button id="startBtn" class="edit-buttons">Start Timer</button>
+                        <div class="row-container">
+                            <h4 draggable="false" id="blockerHeader">Cycles: </h4>
+                            <input type="number" id="cycles" min="1" value="4" draggable=false style="display: inline-block;">
+                        </div>
+                        
+                        <div class="row-container">
+                            <h4 draggable="false" id="blockerHeader">Work Interval (minutes): </h4>
+                            <input type="number" id="work" min="1" value="25" draggable=false style="display: inline-block;">
+                        </div>
+
+                        <div class="row-container">
+                            <h4 draggable="false" id="blockerHeader">Rest Interval (minutes): </h4>
+                            <input type="number" id="rest" min="1" value="5" draggable=false style="display: inline-block;">
+                        </div>
+                        <button id="startBtn" class="edit-buttons">Start Timer</button>
                     </div>
                 </div>
-                <h2 style="font-size: 20px;">Distracted on certain sites?</h2>
+                <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px;">Website blocker</h3>
                 <ul id="taskList">
-                    <div>
-                        <h4 draggable="false" id="blockerHeader">Block the keyword</h4>
+                    <div style="border: none;">
+                        <h4 draggable="false" id="blockerHeader">Block the websites keyword</h4>
                         <input type="text" id="url" placeholder="Enter word here..." draggable=false style="display: inline-block;">
                     </div>
                 </ul>`,
         restTab: `<h2>Rest</h2>
-                <div class="timer-container">
-                    <span class="circular-bg">
-                        <span class="circular-progress">
-                        <button id="startBtn" class="edit-buttons">Start Timer</button>
-                            <input id="editTimerRange" type="range" min="0.167" max="6" step="0.167" value="0.833"></input>
-                            <p id="showTimeEdits"></p>
-                            <h3 class="countdown"></h3>
-                        </span>
-                    </span>
+        <div class="column-container">
+        <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px; width: 100%;">Pomodoro</h3>
+            <div class="row-container" id="displayCountdown">
+                <div class="column-container">
+                    <div class="dove-countdown-before" id="countdownBefore">00:00</div>
+                    <div class="dove-countdown" id="countdownDuring">00:00</div>
+                    <div class="dove-countdown-after" id="countdownAfter">00:00</div>
                 </div>
-                <h2 style="font-size: 20px;">Struggling to rest?</h2>
-                <ul id="taskList">
-                    <div>
-                        <h4 draggable="false" id="blockerHeader">Block the keyword</h4>
-                        <input type="text" id="url" placeholder="Enter word here..." draggable=false style="display: inline-block;">
-                    </div>
-                </ul>`,
+                <div class="column-container">
+                <div class="dove-text" id="cyclesDisplay">Cycles left: 4</div>
+                <img src="/images/standingDoveWaving.gif" alt="Standing dove waving" width="200" height="185">
+                </div>
+            </div>
+        </div>
+        <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px;">Website blocker</h3>
+        <ul id="taskList">
+            <div style="border: none;">
+                <h4 draggable="false" id="blockerHeader">Block the websites keyword</h4>
+                <input type="text" id="url" placeholder="Enter word here..." draggable=false style="display: inline-block;">
+            </div>
+        </ul>`,
         settingsTab: `<h2>Settings</h2>
-                    <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px;">Interactive Dove Reminders:</h3>
+                    <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px;">Interactive Dove Reminders</h3>
                     <div class="column-container">
                         <div class="row-container">
                             <h4>Turn on/off reminders indefinitely</h4>
@@ -88,7 +99,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                         </div>
                     </div>
-                    <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px;">Strict Mode:</h3>
+                    <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px;">Strict Mode</h3>
                     <div class="column-container">
                         <div class="row-container">
                             <h4>Get tempted to unblock sites</h4>
@@ -114,13 +125,13 @@ document.addEventListener('DOMContentLoaded', () => {
         workTab: `<div class="bg-container other">
         <h2>Work</h2>
         <h2>You're in rest mode!</h2>
-        <button id="endRestEarly" class="edit-buttons" style="transform: translateY(300%);width: 120px;">End rest early</button>
+        <button id="endRestEarly" class="edit-buttons" style="width: 130px;">End rest early</button>
         </div>
         `,
         restTab: `<div class="bg-container other">
         <h2>Rest</h2>
         <h2>You're in work mode!</h2>
-        <button id="endWorkEarly" class="edit-buttons"  style="transform: translateY(300%);width: 120px;">End work early</button>
+        <button id="endWorkEarly" class="edit-buttons"  style="width: 130px;">End work early</button>
         </div>
         `,
     };
@@ -459,157 +470,85 @@ function doBlockWebsiteButtons(mode) {
 }
 
 function doCountdownTimer(isWork) {
-    const startBtn = document.getElementById('startBtn');
-    const countdownView = document.getElementsByClassName('countdown')[0];
-    const circularProgressEl = document.getElementsByClassName("circular-progress")[0];
-    const editTimerRange = document.getElementById('editTimerRange');
-    const showTimeEdits = document.getElementById('showTimeEdits');
-    let circularProgress;
-    let circularProgressIntervalID;
-    let totalTime = 50; // debug: need to change to default 50.
-    let timeLeft;
-    let counterToMinute;
-
-    // starting the timer / continuing the timer
-    chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
-        if (response.timeLeft && response.totalTime) {
-            timeLeft = response.timeLeft;
-            totalTime = response.totalTime;
-            continueTimer();
-        } else {
-            startBtn.style.display = "block";
-        }
-        checkIfBackgroundScriptWorks("Can't fetch current countdown time, sorry.");
-    });
-    startBtn.addEventListener('click', () => {
-        const mode = isWork ? 'Work' : 'Rest';
-        timeLeft = totalTime;
-        startTimer();
-        chrome.storage.sync.set({ mode: mode }, () => {
-            alert(`Started ${mode} mode! You will be ${mode}ing for `+
-                totalTime + ' minutes, and will be blocked out of all specified URLs.');
-        });
-    });
-
-    // editing the timer
-    const showEditTimers = 'showEditTimers';
-    chrome.storage.local.get({ showEditTimers }, (result) => {
-        const showEditTimer = result[showEditTimers];
-        if (showEditTimer) {
-            showTimeEdits.style.display = 'block';
-            editTimerRange.style.display = 'block';
-            showTimeEdits.textContent = "0 hr(s), and 50 mins.";
-            editTimerRange.addEventListener("input", (event) => {
-                const time = getMinutesHours(event);
-                showTimeEdits.textContent = time[0]+ " hr(s), and "+time[1]+" mins.";
-            });
-            editTimerRange.addEventListener("mouseup", (event) => {
-                const time = getMinutesHours(event);
-                totalTime = (time[0] * 60) + time[1]; // Convert hours to seconds
-            });
-        } else {
-            showTimeEdits.style.display = 'none';
-            editTimerRange.style.display = 'none';
-        }
-    });
-
-    function startTimer() {
-        chrome.runtime.sendMessage({ cmd: 'START_TIMER', totalTime: totalTime }, ()=>{
-            checkIfBackgroundScriptWorks("Can't start timer, try again.");
-        });
-        continueTimer();
-    }
-
-    function continueTimer() {
-        startBtn.style.display = "none";
-        showTimeEdits.style.display = 'none';
-        editTimerRange.style.display = 'none';
-        // Update the countdown display by requesting time left
-        chrome.runtime.onMessage.addListener((message) => {
-            if (message.cmd === 'UPDATE_TIME') {
-                timeLeft = message.timeLeft;
-                counterToMinute = message.seconds;
-                countdownView.innerHTML = timeLeft + " minutes and " + counterToMinute + " seconds left";
-            }
-            return true;
-        });
-        startCircularProgressAnimation();
-    }
-
-    function startCircularProgressAnimation() {
-        let totalSeconds = totalTime * 60;
-        let elapsedSeconds = (totalTime - timeLeft) * 60 + counterToMinute;
-        let degreesPerSecond = 360 / totalSeconds;
-        circularProgress = degreesPerSecond * elapsedSeconds;
-
-        circularProgressIntervalID = setInterval(() => {
-            if (timeLeft > 0 || counterToMinute > 0) {
-                elapsedSeconds = (totalTime - timeLeft) * 60 + counterToMinute;
-                circularProgress = degreesPerSecond * elapsedSeconds;
-                circularProgressEl.style.background = `conic-gradient(#0388A6 ${circularProgress}deg, #04668C 0deg)`;
-            } else {
-                clearInterval(circularProgressIntervalID);
-                circularProgressEl.style.background = `conic-gradient(#0388A6 360deg, #04668C 0deg)`;
-            }
-        }, 1000);
-    }
-}
-
-// WORK TAB
-function loadWorkTab() {
-    // doCountdownTimer(true);
     const countdownBefore = document.getElementById('countdownBefore');
     const countdownDuring = document.getElementById('countdownDuring');
     const countdownAfter = document.getElementById('countdownAfter');
     const cyclesDisplay = document.getElementById('cyclesDisplay');
     const displayCountdown = document.getElementById('displayCountdown');
-
-    const cycles = document.getElementById('cycles').value;
-    const workDuration = document.getElementById('work').value;
-    const restDuration = document.getElementById('rest').value;
-    const optionsCountdown = document.getElementById('optionsCountdown');
+    let optionsCountdown;
+    let remainingTime; let currentCycle;
 
     chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
-        if (response.remainingTime === 0 && response.currentCycle === 0) {
+        remainingTime = response.remainingTime;
+        currentCycle = response.currentCycle;
+    });
+
+    if (isWork) {
+        const cycles = document.getElementById('cycles').value;
+        const workDuration = document.getElementById('work').value;
+        const restDuration = document.getElementById('rest').value;
+        optionsCountdown = document.getElementById('optionsCountdown');
+
+        if (remainingTime === 0 && currentCycle === 0 || !remainingTime || !currentCycle) {
             displayCountdown.style.display = "none";
             optionsCountdown.style.display = "flex";
         } else {
             displayCountdown.style.display = "flex";
             optionsCountdown.style.display = "none";
         }
-    });
-    document.getElementById('startBtn').addEventListener('click', () => {
-        chrome.runtime.sendMessage({
-          cmd: "START_TIMER",
-          cycles: parseInt(cycles),
-          workDuration: parseInt(workDuration),
-          restDuration: parseInt(restDuration)
-        }, (response) => {
-          console.error(response.status);
+        document.getElementById('startBtn').addEventListener('click', () => {
+            chrome.runtime.sendMessage({
+              cmd: "START_TIMER",
+              cycles: parseInt(cycles),
+              workDuration: parseInt(workDuration),
+              restDuration: parseInt(restDuration)
+            }, (response) => {
+                chrome.storage.sync.set({ mode: 'Work' }, () => {
+                    const message = `${response.status} You will be working for
+                    ${workDuration} minutes, and will be blocked out of all specified URLs.`
+                    chrome.notifications.create({
+                        type: 'basic',
+                        iconUrl: 'icons/doveLogo48.png',
+                        title: 'Dove Reminder - Work',
+                        message: message,
+                        priority: 2
+                    });
+                });
+            });
         });
-    });
-    
+    } else {
+        console.error(remainingTime, currentCycle)
+        if (remainingTime === 0 && currentCycle === 0 || !remainingTime || !currentCycle) {
+            cyclesDisplay.innerHTML = "Go into the work tab to start a pomodoro session...";
+            countdownAfter.style.display = "none";
+            countdownBefore.style.display = "none";
+            countdownDuring.style.display = "none";
+
+            const smallBranchURL = chrome.runtime.getURL('/images/smallBranch.png');
+            const smlBranchImg = document.createElement('img');
+            smlBranchImg.src = smallBranchURL;
+            smlBranchImg.style.transform = "rotate(90deg)";
+            smlBranchImg.style.left = "17%";
+            smlBranchImg.style.position = "relative";
+            smlBranchImg.style.width = "70vw";
+            displayCountdown.style.justifyContent = "end";
+            displayCountdown.insertBefore(smlBranchImg, displayCountdown.firstChild);
+        }
+    }
+
     // Listen for updates from the background script
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         if (request.action === "updateTimerState") {
+            console.error("HERE NOW")
             const remainingTime = request.remainingTime;
 
             countdownBefore.textContent = formatTime(remainingTime -1);
             countdownDuring.textContent = formatTime(remainingTime);
             countdownAfter.textContent = formatTime(remainingTime +1);
-            // // Trigger animations
-            // countdownBefore.style.transform = 'translateY(-100%)'; // Move into view
-            // countdownDuring.style.transform = 'translateY(0)'; // Move into view
-
-            // // Delay for before and during animation
-            // setTimeout(() => {
-            //     countdownBefore.style.transform = 'translateY(0)'; // Move out of view
-            //     countdownDuring.style.transform = 'translateY(100%)'; // Move out of view
-            // }, 1000); // Adjust time for your animation duration
 
             cyclesDisplay.textContent = `Cycles left: ${request.totalCycles - request.currentCycle}`;
             displayCountdown.style.display = "flex";
-            optionsCountdown.style.display = "none";
+            if (isWork) optionsCountdown.style.display = "none";
         }
     });
     
@@ -618,17 +557,40 @@ function loadWorkTab() {
         const secs = seconds % 60;
         return `${String(minutes).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
     }
-      
+}
+
+function doChangedTab(isWork){
+    const modeString = isWork ? "Work" : "Rest";
+    const endModeButton = document.getElementById(`end${isWork ? "Rest" : "Work"}Early`);
+    chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
+        if (response.remainingTime === 0 && response.currentCycle === 0) {
+            endModeButton.innerHTML = `Switch to ${modeString.toLowerCase()} mode`;
+            endModeButton.style.width = "190px";
+            endModeButton.addEventListener('click', ()=> {
+                chrome.storage.sync.set({ mode: modeString });
+            });
+        } else {
+            endModeButton.addEventListener('click', ()=> {
+                chrome.runtime.sendMessage({ cmd: 'STOP_TIMER' }, (response)=> {
+                    if (chrome.runtime.lastError) {
+                        console.error('Error in Dove extension:', chrome.runtime.lastError);
+                    } else if (response && response.status === 'success') {
+                        chrome.storage.sync.set({ mode: modeString });
+                    }
+                });
+            });
+        }
+    });
+}
+
+// WORK TAB
+function loadWorkTab() {
+    doCountdownTimer(true);
     doBlockWebsiteButtons("Work");
 }
 
 function loadChangedWorkTab() {
-    const endModeButton = document.getElementById('endRestEarly');
-    endModeButton.addEventListener('click', ()=> {
-        chrome.runtime.sendMessage({ cmd: 'STOP_TIMER' }, ()=> {
-            chrome.storage.sync.set({ mode: 'Work' });
-        });
-    })
+    doChangedTab(true);
 }
 
 // REST TAB
@@ -638,12 +600,7 @@ function loadRestTab() {
 }
 
 function loadChangedRestTab() {
-    const endModeButton = document.getElementById('endWorkEarly');
-    endModeButton.addEventListener('click', ()=> {
-        chrome.runtime.sendMessage({ cmd: 'STOP_TIMER' }, ()=> {
-            chrome.storage.sync.set({ mode: 'Rest' });
-        });
-    })
+    doChangedTab(false);
 }
 
 // SETTINGS

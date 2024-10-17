@@ -57,10 +57,6 @@ function closeCurrentTab(milliseconds) {
 }
 
 // listens and executes all action messages
-// let countdownInterval;
-// let totalTime;
-// let timeLeft;
-// let counterToMinute = 0;
 let currentCycle = 0;
 let totalCycles = 0;
 let workDuration = 0; // mins
@@ -82,12 +78,14 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         chrome.alarms.create("updateIcon", { delayInMinutes: 1, periodInMinutes: 1 }); // Update icon every minute
 
         isWorking = true;
-        sendResponse({ status: "Timer started" });
+        const mode = isWorking ? 'Work' : 'Rest';
+        chrome.storage.sync.set({ mode: mode });
+        sendResponse({ status: isWorking ? "Started work mode!" : "Started rest mode!"});
     } else if (request.cmd === 'GET_TIME') {
         sendResponse({ remainingTime: remainingTime, currentCycle: currentCycle });
     } else if (request.cmd === 'STOP_TIMER') {
-        // stopCountdown();
         resetTimer();
+        sendResponse({ status: 'success' });
     } else if (request.cmd === 'RELOAD') {
         reloadPage();
     } else if (request.cmd === 'BLOCK_CURRENT_URL') {
@@ -109,7 +107,21 @@ function sendTimerState() {
       currentCycle,
       isWorking
     });
-  }
+}
+
+function updateModeSendNotif(isPomodoro) {
+    const mode = isWorking ? 'Work' : 'Rest';
+    chrome.storage.sync.set({ mode: mode });
+    const message = isPomodoro ? `Time is up... get ready to ${mode.toLowerCase()}!` 
+    : "You've finished your current pomodoro! Rest mode will be on until your next work session.";
+    chrome.notifications.create({
+        type: 'basic',
+        iconUrl: 'icons/doveLogo48.png',
+        title: `Switched to ${mode} interval.`,
+        message: message,
+        priority: 2
+    });
+}
 
 chrome.alarms.onAlarm.addListener((alarm) => {
     if (alarm.name === "work") {
@@ -118,17 +130,20 @@ chrome.alarms.onAlarm.addListener((alarm) => {
         updateIcon("rest");
         chrome.alarms.create("rest", { delayInMinutes: restDuration });
         isWorking = false;
-        sendTimerState(); // Send the updated state when starting a new alarm
+        sendTimerState();
+        updateModeSendNotif(true);
     } else if (alarm.name === "rest") {
         if (currentCycle < totalCycles) {
           remainingTime = workDuration * 60; // set remaining time for work
           updateIcon("work");
           chrome.alarms.create("work", { delayInMinutes: workDuration });
           isWorking = true;
+          updateModeSendNotif(true);
         } else {
           resetTimer();
+          updateModeSendNotif(false);
         }
-        sendTimerState(); // Send the updated state when starting a new alarm
+        sendTimerState();
     } else if (alarm.name === "updateIcon") {
         updateIcon(isWorking ? "work" : "rest");
     }
@@ -155,45 +170,6 @@ function resetTimer() {
   chrome.alarms.clearAll();
   if (sendTimerSecs) clearInterval(sendTimerSecs);
 }
-
-// function startCountdown() {
-//     stopCountdown();
-//     countdownInterval = setInterval(() => {
-//         if (timeLeft > 0) {
-//             counterToMinute++;
-//             if (counterToMinute == 60) {
-//                 timeLeft--;
-//                 counterToMinute = 0;
-//             }
-//             chrome.runtime.sendMessage({ cmd: 'UPDATE_TIME', timeLeft: timeLeft, seconds: counterToMinute });
-//         } else {
-//             stopCountdown();
-//             counterToMinute = 0;
-//             chrome.storage.sync.get('mode', (data) => {
-//                 const mode = data.mode === 'Work' ? 'Rest' : 'Work';
-//                 chrome.storage.sync.set({ mode: mode });
-
-//                 const message =`Time is up... get ready to ${mode.toLowerCase()}!`;
-//                 chrome.notifications.create({
-//                     type: 'basic',
-//                     iconUrl: 'icons/doveLogo128.png',
-//                     title: `Switched to ${mode} mode`,
-//                     message: message,
-//                     priority: 2
-//                 });
-//             });
-//         }
-//     }, 1000); // 1000 == 1 secs, 60000 == 1 minute
-// }
-
-// function stopCountdown() {
-//     if (countdownInterval) {
-//         clearInterval(countdownInterval);
-//         countdownInterval = null;
-//         timeLeft = null;
-//         totalTime = null;
-//     }
-// }
 
 function reloadPage() {
     chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
