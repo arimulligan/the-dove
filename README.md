@@ -54,7 +54,7 @@ If you want to modify or contribute to this project, follow these steps:
 - **`content-script.js`**: The script which gets injected into the current active tab, has all the information on the dove flying down and the quotes it produces.
 - **`popup.js`**: All things in the popup extension - it handles the settings, the user input and communicates with `background.js` for the pomodoro timer and blocking sites.
 
-### Author Notes
+## Author Notes
 Thank you to MDDN390 at Victoria Univerisity of Wellington for giving me the time to create an awesome extension. Thanks to all the user testers, your feedback has helped me greatly!
 
 Feel free to add a review on the Chrome Web Store if you have enjoyed this extension.
