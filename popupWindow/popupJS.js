@@ -133,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <img src="/images/standingBird.png" alt="Standing dove" width="200" height="185">
         </div>
         <button id="endCycletoWork" class="edit-buttons" style="width: 200px;">End rest cycle early</button>
-        <button id="endPomodoro" class="edit-buttons"  style="width: 200px;">End pomodoro and rest</button>
+        <button id="endPomodoro" class="edit-buttons"  style="width: 200px;">End pomodoro and work</button>
         </div>
         `,
         restTab: `<div class="bg-container other">
@@ -489,11 +489,10 @@ function doCountdownTimer(isWork) {
     const cyclesDisplay = document.getElementById('cyclesDisplay');
     const displayCountdown = document.getElementById('displayCountdown');
     let optionsCountdown;
-    let remainingTime; let currentCycle;
+    let remainingTime;
 
     chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
         remainingTime = response.remainingTime;
-        currentCycle = response.currentCycle;
     });
 
     if (isWork) {
@@ -585,10 +584,8 @@ function doChangedTab(isWork){
     const endPomodoroButton = document.getElementById('endPomodoro');
     const endCycle = document.getElementById(`endCycleto${modeString}`);
     chrome.storage.local.get(['showEndPomodoro', 'showEndCycle'], (result) => {
-        const showEndCycle = result['showEndCycle'];
-        const showEndPomodoro = result['showEndPomodoro'];
-
-        console.error(showEndCycle, showEndPomodoro)
+        const showEndCycle = result['showEndCycle'] ?? true; // default to true
+        const showEndPomodoro = result['showEndPomodoro'] ?? true;
 
         if (showEndCycle || showEndPomodoro) {
             chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
