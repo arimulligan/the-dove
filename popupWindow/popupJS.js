@@ -672,11 +672,12 @@ function loadSettings() {
     const input = document.querySelector("#remIntervals");
     chrome.storage.sync.get('reminderInterval', (data) => {
         const interval = data.reminderInterval;
+        console.error(interval)
         if (interval) {
-            const totalMinutes = Math.floor(interval / 1000 / 60);
-            const hours = Math.floor(totalMinutes / 60);
-            const minutes = totalMinutes % 60;
+            const hours = Math.floor(interval / 60);
+            const minutes = interval % 60;
             input.value = hours + (minutes / 60);
+            console.error(hours, minutes)
             if (hours == 0 || minutes == 0) {
                 value.textContent = "0 hour(s), and 1 min.";
             } else {
@@ -691,9 +692,10 @@ function loadSettings() {
         value.textContent = time[0]+ " hour(s), and "+time[1]+" mins.";
     });
     input.addEventListener("mouseup", (event) => {
-        const reminderInterval = event.target.value * 60; // Convert hours to minutes
-        chrome.storage.sync.set({ reminderInterval: reminderInterval }, () => {
-            alert('I will now fly down and remind you \nthrough quotes, verses, and sassy questions every: \n\n'+ value.textContent);
+        const reminderInterval = event.target.value; // Convert hours to minutes
+        const minutes = parseInt(((reminderInterval - 0.017) / (5.0 - 0.017)) * (300 - 1) + 1);
+        chrome.storage.sync.set({ reminderInterval: minutes }, () => {
+            alert('I will now fly down and remind you \nthrough quotes, verses, and sassy questions every: \n\n'+ minutes + " minutes.");
         });
     });
 
