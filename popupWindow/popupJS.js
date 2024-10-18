@@ -21,13 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px; width: 100%;">Pomodoro</h3>
                     <div class="row-container" id="displayCountdown">
                         <div class="column-container">
+                            <div class="dove-text" style="align-self: flex-start;">Time Left:</div>
                             <div class="dove-countdown-before" id="countdownBefore">00:00</div>
                             <div class="dove-countdown" id="countdownDuring">00:00</div>
                             <div class="dove-countdown-after" id="countdownAfter">00:00</div>
+                            <div></div><div></div>
                         </div>
                         <div class="column-container">
-                        <div class="dove-text" id="cyclesDisplay">Cycles left: 4</div>
-                        <img src="/images/standingDoveWaving.gif" alt="Standing dove waving" width="200" height="185">
+                            <div class="row-container">
+                                <div class="dove-text" style="align-self: flex-start;" id="cyclesText">Cycles left:</div>
+                                <div id="cyclesDisplay" class="dove-countdown">4</div>
+                            </div>
+                            <img src="/images/standingDoveWaving.gif" alt="Standing dove waving" width="200" height="133">
                         </div>
                     </div>
                     <div class="column-container" id="optionsCountdown">
@@ -58,17 +63,22 @@ document.addEventListener('DOMContentLoaded', () => {
         restTab: `<h2>Rest</h2>
         <div class="column-container">
         <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px; width: 100%;">Pomodoro</h3>
-            <div class="row-container" id="displayCountdown">
-                <div class="column-container">
-                    <div class="dove-countdown-before" id="countdownBefore">00:00</div>
-                    <div class="dove-countdown" id="countdownDuring">00:00</div>
-                    <div class="dove-countdown-after" id="countdownAfter">00:00</div>
-                </div>
-                <div class="column-container">
-                <div class="dove-text" id="cyclesDisplay">Cycles left: 4</div>
-                <img src="/images/standingDoveWaving.gif" alt="Standing dove waving" width="200" height="185">
-                </div>
+        <div class="row-container" id="displayCountdown">
+            <div class="column-container">
+                <div class="dove-text" style="align-self: flex-start;" id="timeLeftText">Time Left:</div>
+                <div class="dove-countdown-before" id="countdownBefore">00:00</div>
+                <div class="dove-countdown" id="countdownDuring">00:00</div>
+                <div class="dove-countdown-after" id="countdownAfter">00:00</div>
+                <div></div><div></div>
             </div>
+            <div class="column-container">
+                <div class="row-container">
+                    <div class="dove-text" style="align-self: flex-start;" id="cyclesText">Cycles left:</div>
+                    <div id="cyclesDisplay" class="dove-countdown">4</div>
+                </div>
+                <img src="/images/standingDoveWaving.gif" alt="Standing dove waving" width="200" height="133">
+            </div>
+        </div>
         </div>
         <h3 style="font-size:20px; border:5px solid #04668C; border-radius: 10px;">Website blocker</h3>
         <ul id="taskList">
@@ -487,6 +497,8 @@ function doCountdownTimer(isWork) {
     const countdownDuring = document.getElementById('countdownDuring');
     const countdownAfter = document.getElementById('countdownAfter');
     const cyclesDisplay = document.getElementById('cyclesDisplay');
+    const cyclesText = document.getElementById('cyclesText');
+    const timeLeftText = document.getElementById('timeLeftText');
     const displayCountdown = document.getElementById('displayCountdown');
     let optionsCountdown;
     
@@ -527,19 +539,21 @@ function doCountdownTimer(isWork) {
             });
         } else {
             if (!isTimerOn) {
-                cyclesDisplay.innerHTML = "Go into the work tab to start a pomodoro session...";
+                cyclesText.innerHTML = "Go into the work tab to start a pomodoro session...";
+                cyclesDisplay.style.display = "none";
                 countdownAfter.style.display = "none";
                 countdownBefore.style.display = "none";
                 countdownDuring.style.display = "none";
+                timeLeftText.style.display = "none";
     
                 const smallBranchURL = chrome.runtime.getURL('/images/smallBranch.png');
                 const smlBranchImg = document.createElement('img');
                 smlBranchImg.src = smallBranchURL;
                 smlBranchImg.id = "smallBranchURL";
                 smlBranchImg.style.transform = "rotate(90deg)";
-                smlBranchImg.style.left = "17%";
+                smlBranchImg.style.left = "7%";
                 smlBranchImg.style.position = "relative";
-                smlBranchImg.style.width = "70vw";
+                smlBranchImg.style.width = "55vw";
                 displayCountdown.style.justifyContent = "end";
                 displayCountdown.insertBefore(smlBranchImg, displayCountdown.firstChild);
             }
@@ -555,7 +569,7 @@ function doCountdownTimer(isWork) {
             countdownDuring.textContent = formatTime(remainingTime);
             countdownAfter.textContent = formatTime(remainingTime +1);
 
-            cyclesDisplay.textContent = `Cycles left: ${request.totalCycles - request.currentCycle}`;
+            cyclesDisplay.textContent = `${request.totalCycles - request.currentCycle}`;
             displayCountdown.style.display = "flex";
             if (isWork) {
                 optionsCountdown.style.display = "none";
@@ -563,6 +577,7 @@ function doCountdownTimer(isWork) {
                 countdownAfter.style.display = "block";
                 countdownBefore.style.display = "block";
                 countdownDuring.style.display = "block";
+                timeLeftText.style.display = "block";
                 const smlBranchImg = document.getElementById('smallBranchURL');
                 if (smlBranchImg) smlBranchImg.remove();
                 displayCountdown.style.justifyContent = "space-between";

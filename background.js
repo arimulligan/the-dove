@@ -293,6 +293,5 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 chrome.alarms.onAlarm.addListener(runReminderLogic);
 
 // reset timer stuff after session is finished.
-chrome.runtime.onStartup.addListener(() => {
-    resetTimer();
-});
+chrome.runtime.onStartup.addListener(resetTimer);
+chrome.runtime.onInstalled.addListener(resetTimer);
