@@ -143,31 +143,42 @@ button {
     width: 100%;
 }
 
-.unselected-box, .selected-box {
-    width: 30%;
-    height: 80px;
-    border: #8C5C4A solid 5px;
-    background-size: contain;
-    background-repeat: no-repeat;
+.unselected-box, .selected-box  {
+    border-radius: 10px;
     background-color: #F2A007;
-    background-position: center;
+    position: relative;
+    text-align: center;
+    text-decoration-thickness: auto;
+    width: 30%;
 }
 
-#goalIcon {
-    background-image: url('/images/goalsIcon.png');
-}
-
-#workIcon {
-    background-image: url('/images/workIcon.png');
-}
-
-#restIcon {
-    background-image: url('/images/restIcon.png');
-}
-
-.selected-box, .unselected-box:hover {
-    height: 85px;
+.unselected-box:focus, .selected-box {
+    outline: 0;
     background-color: #F28705;
+
+}
+
+.unselected-box:after, .selected-box::after{
+    content: '';
+    position: absolute;
+    border: 2px solid #8C5C4A;
+    border-radius: 10px;
+    bottom: 4px;
+    left: 4px;
+    width: calc(100% - 1px);
+    height: calc(100% - 1px);
+}
+
+.unselected-box:hover:after, .selected-box::after {
+    bottom: 2px;
+    left: 2px;
+}
+.unselected-box:hover {
+    background-color: #F28705;
+}
+
+.coolText {
+    color: #8C5C4A;
 }
 
 /* Global Styles */
@@ -250,18 +261,18 @@ span {
     width: 110px;
     height: 40px;
     font-weight: 900;
-    background-color: #F2A007;
+    background-color: #04668C;
     border-radius: 30%;
-    color: #8C5C4A;
+    color: #0388A6;
     padding: 0%;
     z-index: 10;
     margin: 5px;
-    border: #8C5C4A solid 3px;
 }
 
 .edit-buttons:hover {
-    background-color: #F28705;
-    border-radius: 20%;
+    background-color: #0388A6;
+    color: #04668C;
+    border: #04668C solid 3px;
 }
 
 button#redirectBtn {
