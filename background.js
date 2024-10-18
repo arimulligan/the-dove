@@ -80,16 +80,13 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         isWorking = true;
         const mode = isWorking ? 'Work' : 'Rest';
         chrome.storage.sync.set({ mode: mode });
+        chrome.storage.sync.set({ timer: true });
         sendResponse({ status: isWorking ? "Started work mode!" : "Started rest mode!"});
-    } else if (request.cmd === 'GET_TIME') {
-        sendResponse({ remainingTime: remainingTime, currentCycle: currentCycle });
     } else if (request.cmd === 'STOP_TIMER') {
         resetTimer();
         sendResponse({ status: 'success' });
     } else if (request.cmd === 'SKIP_CYCLE') {
         skipCycle();
-    } else if (request.cmd === 'RELOAD') {
-        reloadPage();
     } else if (request.cmd === 'BLOCK_CURRENT_URL') {
         blockCurrentURL(request.mode);
     } else if (request.cmd === 'CLOSE_TAB') {
@@ -171,6 +168,7 @@ function resetTimer() {
   chrome.action.setBadgeText({ text: "" });
   chrome.alarms.clearAll();
   if (sendTimerSecs) clearInterval(sendTimerSecs);
+  chrome.storage.sync.set({ timer: false });
 }
 
 function skipCycle() {
@@ -192,36 +190,6 @@ function skipCycle() {
     }
     sendTimerState(); // Send the updated timer state to the popup
     updateModeSendNotif(true); // Send a notification about the mode switch
-}
-
-function reloadPage() {
-    chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-        if (tabs.length > 0) {
-            chrome.scripting.executeScript({
-                target: { tabId: tabs[0].id },
-                function: reloadTab
-            }, ()=> {
-                let error = chrome.runtime.lastError;
-                if (error && error.message &&
-                    !error.message.startsWith("Cannot access contents of url \"chrome") &&
-                    !error.message.startsWith("Cannot access a chrome:// URL")
-                ) {
-                    const message = 'Cannot inject script into this page, sorry.';
-                    chrome.notifications.create({
-                        type: 'basic',
-                        iconUrl: 'icons/doveLogo128.png',
-                        title: 'Dove Reminder Issue',
-                        message: message,
-                        priority: 2
-                    });
-                }
-            });
-        }
-    });
-
-    function reloadTab() {
-        location.reload();
-    }
 }
 
 // for the dove reminder intervals
@@ -297,6 +265,7 @@ async function runReminderLogic() {
     });
 };
 
+// LISTENERS
 chrome.storage.onChanged.addListener(async (changes) => {
     if (changes.reminderInterval) {
         chrome.alarms.clear(
@@ -322,3 +291,8 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 });
 
 chrome.alarms.onAlarm.addListener(runReminderLogic);
+
+// reset timer stuff after session is finished.
+chrome.runtime.onStartup.addListener(() => {
+    resetTimer();
+});

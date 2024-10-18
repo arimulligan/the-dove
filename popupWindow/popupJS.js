@@ -489,64 +489,62 @@ function doCountdownTimer(isWork) {
     const cyclesDisplay = document.getElementById('cyclesDisplay');
     const displayCountdown = document.getElementById('displayCountdown');
     let optionsCountdown;
-    let remainingTime;
-
-    chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
-        remainingTime = response.remainingTime;
-    });
-
-    if (isWork) {
-        optionsCountdown = document.getElementById('optionsCountdown');
-        
-        if (!remainingTime || remainingTime === 0) {
-            displayCountdown.style.display = "none";
-            optionsCountdown.style.display = "flex";
-        } else {
-            displayCountdown.style.display = "flex";
-            optionsCountdown.style.display = "none";
-        }
-        document.getElementById('startBtn').addEventListener('click', () => {
-            const cycles = document.getElementById('cycles').value;
-            const workDuration = document.getElementById('work').value;
-            const restDuration = document.getElementById('rest').value;
-            chrome.runtime.sendMessage({
-              cmd: "START_TIMER",
-              cycles: parseInt(cycles),
-              workDuration: parseInt(workDuration),
-              restDuration: parseInt(restDuration)
-            }, (response) => {
-                chrome.storage.sync.set({ mode: 'Work' }, () => {
-                    const message = `${response.status} You will be working for
-                    ${workDuration} minutes, and will be blocked out of all specified URLs.`
-                    chrome.notifications.create({
-                        type: 'basic',
-                        iconUrl: '/icons/doveLogo128.png',
-                        title: 'Dove Reminder - Work',
-                        message: message,
-                        priority: 2
+    
+    chrome.storage.sync.get('timer', (data) => { 
+        const isTimerOn = data.timer;
+        if (isWork) {
+            optionsCountdown = document.getElementById('optionsCountdown');
+            
+            if (!isTimerOn) {
+                displayCountdown.style.display = "none";
+                optionsCountdown.style.display = "flex";
+            } else {
+                displayCountdown.style.display = "flex";
+                optionsCountdown.style.display = "none";
+            }
+            document.getElementById('startBtn').addEventListener('click', () => {
+                const cycles = document.getElementById('cycles').value;
+                const workDuration = document.getElementById('work').value;
+                const restDuration = document.getElementById('rest').value;
+                chrome.runtime.sendMessage({
+                  cmd: "START_TIMER",
+                  cycles: parseInt(cycles),
+                  workDuration: parseInt(workDuration),
+                  restDuration: parseInt(restDuration)
+                }, (response) => {
+                    chrome.storage.sync.set({ mode: 'Work' }, () => {
+                        const message = `${response.status} You will be working for
+                        ${workDuration} minutes, and will be blocked out of all specified URLs.`
+                        chrome.notifications.create({
+                            type: 'basic',
+                            iconUrl: '/icons/doveLogo128.png',
+                            title: 'Dove Reminder - Work',
+                            message: message,
+                            priority: 2
+                        });
                     });
                 });
             });
-        });
-    } else {
-        if (!remainingTime || remainingTime === 0) {
-            cyclesDisplay.innerHTML = "Go into the work tab to start a pomodoro session...";
-            countdownAfter.style.display = "none";
-            countdownBefore.style.display = "none";
-            countdownDuring.style.display = "none";
-
-            const smallBranchURL = chrome.runtime.getURL('/images/smallBranch.png');
-            const smlBranchImg = document.createElement('img');
-            smlBranchImg.src = smallBranchURL;
-            smlBranchImg.id = "smallBranchURL";
-            smlBranchImg.style.transform = "rotate(90deg)";
-            smlBranchImg.style.left = "17%";
-            smlBranchImg.style.position = "relative";
-            smlBranchImg.style.width = "70vw";
-            displayCountdown.style.justifyContent = "end";
-            displayCountdown.insertBefore(smlBranchImg, displayCountdown.firstChild);
+        } else {
+            if (!isTimerOn) {
+                cyclesDisplay.innerHTML = "Go into the work tab to start a pomodoro session...";
+                countdownAfter.style.display = "none";
+                countdownBefore.style.display = "none";
+                countdownDuring.style.display = "none";
+    
+                const smallBranchURL = chrome.runtime.getURL('/images/smallBranch.png');
+                const smlBranchImg = document.createElement('img');
+                smlBranchImg.src = smallBranchURL;
+                smlBranchImg.id = "smallBranchURL";
+                smlBranchImg.style.transform = "rotate(90deg)";
+                smlBranchImg.style.left = "17%";
+                smlBranchImg.style.position = "relative";
+                smlBranchImg.style.width = "70vw";
+                displayCountdown.style.justifyContent = "end";
+                displayCountdown.insertBefore(smlBranchImg, displayCountdown.firstChild);
+            }
         }
-    }
+    });
 
     // Listen for updates from the background script
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -588,9 +586,9 @@ function doChangedTab(isWork){
         const showEndPomodoro = result['showEndPomodoro'] ?? true;
 
         if (showEndCycle || showEndPomodoro) {
-            chrome.runtime.sendMessage({ cmd: 'GET_TIME' }, response => {
-                const remainingTime = response.remainingTime;
-                if (!remainingTime || remainingTime === 0) {
+            chrome.storage.sync.get('timer', (data) => { 
+                const isTimerOn = data.timer;
+                if (!isTimerOn) {
                     endCycle.style.display = "none";
                     if (showEndPomodoro) {
                         endPomodoroButton.style.display = "block";
@@ -698,9 +696,6 @@ function loadSettings() {
                 const newSetting = !settingOnOrOff;
                 chrome.storage.local.set({ [storageVar]: !settingOnOrOff }, () => {
                     toggleInteractionElem.innerHTML = newSetting ? 'Turn Off' : 'Turn On';
-                    chrome.runtime.sendMessage({ cmd: 'RELOAD' }, ()=> {
-                        checkIfBackgroundScriptWorks("Can't reload page, try again.");
-                    });
                 });
             });
         });
