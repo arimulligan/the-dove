@@ -116,7 +116,7 @@ function updateModeSendNotif(isPomodoro) {
     chrome.notifications.create({
         type: 'basic',
         iconUrl: 'icons/doveLogo128.png',
-        title: `Switched to ${mode} interval.`,
+        title: `Switched to ${mode.toLowerCase()} interval`,
         message: message,
         priority: 2
     });
@@ -166,7 +166,8 @@ function resetTimer() {
   currentCycle = 0;
   remainingTime = 0;
   chrome.action.setBadgeText({ text: "" });
-  chrome.alarms.clearAll();
+  chrome.alarms.clear("work");
+  chrome.alarms.clear("rest");
   if (sendTimerSecs) clearInterval(sendTimerSecs);
   chrome.storage.sync.set({ timer: false });
 }
@@ -220,16 +221,24 @@ async function registerContentScript(tabId) {
 }
 
 async function createReminder(interval) {
+    const existingAlarm = await chrome.alarms.get(ALARM_NAME);
+    if (existingAlarm && existingAlarm.periodInMinutes === interval) {
+        return; // Don't recreate the alarm if it's already set with the correct interval
+    }
+    
     if (debug) {
         interval = 0.5; // 30 seconds for testing
     }
 
-    const alarm = await chrome.alarms.get(ALARM_NAME);
-    if (typeof alarm === 'undefined') {
-        chrome.alarms.create(ALARM_NAME, {
-            periodInMinutes: interval
-        });
-    }
+    chrome.alarms.clear(
+        ALARM_NAME,
+        async () => {
+            chrome.alarms.create(ALARM_NAME, {
+                periodInMinutes: interval
+            });
+            console.error('created alarm', interval);
+        }
+    );
 }
 
 async function runReminderLogic() {
@@ -253,7 +262,7 @@ async function runReminderLogic() {
                         chrome.notifications.create({
                             type: 'basic',
                             iconUrl: 'icons/doveLogo128.png',
-                            title: 'Dove Reminder',
+                            title: 'Dove Reminder Error',
                             message: message,
                             priority: 2
                         });
@@ -268,11 +277,7 @@ async function runReminderLogic() {
 // LISTENERS
 chrome.storage.onChanged.addListener(async (changes) => {
     if (changes.reminderInterval) {
-        chrome.alarms.clear(
-            ALARM_NAME,
-            async () => {
-                await createReminder(changes.reminderInterval.newValue);
-            });
+        await createReminder(changes.reminderInterval.newValue);
     }
     // for URL blocking
     if (changes.blockedSitesRest || changes.blockedSitesWork || changes.mode) {
@@ -280,18 +285,22 @@ chrome.storage.onChanged.addListener(async (changes) => {
     }
 });
 
-// Every time the user enters their URL, the dove shows up.
-chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
-    if (changeInfo.url) {
-        chrome.storage.sync.get('reminderInterval', async (data) => {
-            const interval = data.reminderInterval || 90; // 1 hour and a half
-            await createReminder(interval);
-        });
-    }
-});
-
 chrome.alarms.onAlarm.addListener(runReminderLogic);
 
-// reset timer stuff after session is finished.
-chrome.runtime.onStartup.addListener(resetTimer);
-chrome.runtime.onInstalled.addListener(resetTimer);
+// reset timer stuff if new session is created.
+chrome.runtime.onStartup.addListener(()=> {
+    resetTimer();
+    chrome.storage.sync.get('reminderInterval', async (data) => {
+        const interval = data.reminderInterval || 90; // default to 1 hour and a half
+        chrome.storage.sync.set({ reminderInterval: interval });
+        await createReminder(interval);
+    });
+});
+chrome.runtime.onInstalled.addListener(()=> {
+    resetTimer();
+    chrome.storage.sync.get('reminderInterval', async (data) => {
+        const interval = data.reminderInterval || 90; // default to 1 hour and a half
+        chrome.storage.sync.set({ reminderInterval: interval });
+        await createReminder(interval);
+    });
+});

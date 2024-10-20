@@ -97,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="row-container">
                             <h4>Change the reminder frequency here</h4>
                             <div class="column-container">
-                                <input id="remIntervals" type="range" min="0.017" max="5.0" style="width: 90%;" step="0.017"></input>
+                                <input id="remIntervals" type="range" min="0.02" max="5.0" style="width: 90%;" step="0.02"></input>
                                 <h4 id="remIntervalsValue"></h4>
                             </div>
                         </div>
@@ -525,8 +525,7 @@ function doCountdownTimer(isWork) {
                   restDuration: parseInt(restDuration)
                 }, (response) => {
                     chrome.storage.sync.set({ mode: 'Work' }, () => {
-                        const message = `${response.status} You will be working for
-                        ${workDuration} minutes, and will be blocked out of all specified URLs.`
+                        const message = `${response.status} You will be working for ${workDuration} minutes, and will be blocked out of all specified URLs.`
                         chrome.notifications.create({
                             type: 'basic',
                             iconUrl: '/icons/doveLogo128.png',
@@ -678,11 +677,7 @@ function loadSettings() {
             const minutes = interval % 60;
             input.value = hours + (minutes / 60);
             console.error(hours, minutes)
-            if (hours == 0 || minutes == 0) {
-                value.textContent = "0 hour(s), and 1 min.";
-            } else {
-                value.textContent = hours+ " hour(s), and "+minutes+" mins.";
-            }
+            value.textContent = hours+ " hour(s), and "+minutes+" mins.";
         } else {
             value.textContent = "0 hour(s), and 1 min.";
         }
