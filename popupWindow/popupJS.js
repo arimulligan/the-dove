@@ -671,12 +671,10 @@ function loadSettings() {
     const input = document.querySelector("#remIntervals");
     chrome.storage.sync.get('reminderInterval', (data) => {
         const interval = data.reminderInterval;
-        console.error(interval)
         if (interval) {
             const hours = Math.floor(interval / 60);
             const minutes = interval % 60;
             input.value = hours + (minutes / 60);
-            console.error(hours, minutes)
             value.textContent = hours+ " hour(s), and "+minutes+" mins.";
         } else {
             value.textContent = "0 hour(s), and 1 min.";

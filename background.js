@@ -225,7 +225,7 @@ async function createReminder(interval) {
     if (existingAlarm && existingAlarm.periodInMinutes === interval) {
         return; // Don't recreate the alarm if it's already set with the correct interval
     }
-    
+
     if (debug) {
         interval = 0.5; // 30 seconds for testing
     }
@@ -236,7 +236,6 @@ async function createReminder(interval) {
             chrome.alarms.create(ALARM_NAME, {
                 periodInMinutes: interval
             });
-            console.error('created alarm', interval);
         }
     );
 }
