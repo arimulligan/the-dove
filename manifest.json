@@ -1,7 +1,7 @@
 {
     "name": "The Dove: Website Blocker, Goal Setting, & Pomodoro",
     "version": "1.1.0",
-    "description": "The Dove gives you verses or encouraging statements on your current tab. It blocks websites depending on the rest/work pomodoro interval, with a built in to-do list! It's your life balance helper.",
+    "description": "The Dove gives you encouraging statements on your current tab. It blocks websites depending on the rest/work pomodoro interval, with a built in to-do list!",
     "manifest_version": 3,
     "author": "Arianna Mulligan",
     "content_scripts": [
