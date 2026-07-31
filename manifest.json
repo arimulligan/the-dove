@@ -1,7 +1,7 @@
 {
-    "name": "The Dove: Website Blocker, Goal Setting, & Pomodoro",
-    "version": "1.1.0",
-    "description": "The Dove blocks websites depending on the rest/work interval, with a to-do list and an encouraging dove!",
+    "name": "Bible Verses on Current Tab",
+    "version": "1.0.0",
+    "description": "Display Bible verses on your current tab through a dove which flies down from the top of the page. The dove will display a Bible verse in a speech bubble.",
     "manifest_version": 3,
     "author": "Arianna Mulligan",
     "content_scripts": [
@@ -17,7 +17,7 @@
         }
     ],
     "permissions": ["storage", "scripting", "activeTab", "tabs",
-    "declarativeNetRequest", "declarativeNetRequestWithHostAccess", "notifications", "alarms"],
+    "declarativeNetRequest", "declarativeNetRequestWithHostAccess"],
     "host_permissions": ["<all_urls>", "*://*/*"],
     "background": {
         "service_worker": "background.js"

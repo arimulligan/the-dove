@@ -61,19 +61,6 @@ h4 {
     vertical-align: text-bottom;
 }
 
-/* Settings Cog */
-.settings-cog {
-    position: relative;
-    left: 15%;
-    top: -10px;
-    width: 30px;
-    height: 30px;
-    background-image: url('/images/settingsCog.png');
-    background-size: contain;
-    border: none;
-    background-color: transparent;
-}
-
 /* Dark Blue Background */
 .bg-container {
     background-color: transparent;
@@ -118,69 +105,6 @@ button {
     transition: background-color 0.3s ease;
 }
 
-#deleteButton {
-    background-image: url('/images/trashClosed.png');
-    width: 25px;
-    height: 45px;
-    background-size: contain;
-    background-repeat: no-repeat;
-    padding: 0px;
-    margin-left: 0px;
-    background-color: transparent;
-}
-
-#deleteButton:hover {
-    background-image: url('/images/trashOpen.png');
-    width: 30px;
-    height: 50px;
-}
-
-/* Nav-Bar Buttons */
-.boxes {
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    width: 100%;
-}
-
-.unselected-box, .selected-box  {
-    border-radius: 10px;
-    background-color: #F2A007;
-    position: relative;
-    text-align: center;
-    text-decoration-thickness: auto;
-    width: 30%;
-}
-
-.unselected-box:focus, .selected-box {
-    outline: 0;
-    background-color: #F28705;
-
-}
-
-.unselected-box:after, .selected-box::after{
-    content: '';
-    position: absolute;
-    border: 2px solid #8C5C4A;
-    border-radius: 10px;
-    bottom: 4px;
-    left: 4px;
-    width: calc(100% - 1px);
-    height: calc(100% - 1px);
-}
-
-.unselected-box:hover:after, .selected-box::after {
-    bottom: 2px;
-    left: 2px;
-}
-.unselected-box:hover {
-    background-color: #F28705;
-}
-
-.coolText {
-    color: #8C5C4A;
-}
-
 /* Global Styles */
 div, ul, li {
     background-color: transparent;
@@ -191,126 +115,8 @@ div, ul, li {
     color: #F2A007;
 }
 
-/* Task List */
-ul {
-    display: flex;
-    gap: 5px;
-    flex-direction: column;
-    list-style-type: none;
-    padding: 0;
-}
-
-ul div {
-    display: flex;
-    justify-content: space-between;
-    flex-direction: row;
-    gap: 5px;
-    align-items: center;
-    align-content: center;
-    border:5px solid #04668C;
-    border-radius: 10px;
-}
-
-li {
-    cursor: move;
-    display: flex;
-    justify-content:space-between;
-    flex-direction: row;
-    gap: 5px;
-    align-items: center;
-    background-color: rgba(4, 102, 140, 0.5);
-    border-radius: 10px;
-    padding-left: 10px;
-    padding-right: 10px;
-}
-
 .notDrag {
     cursor:auto;
-}
-
-/* each text point in the list */
-span {
-    color:#F2A007;
-    width: 75vw;
-    word-wrap:break-word;
-}
-
-#bulletPoint {
-    width: 25px;
-    height: 25px;
-    background-image: url('/images/draggableBulletUI.png');
-    background-size: contain;
-    background-repeat: no-repeat;
-    border: none !important;
-    border-radius: 0% !important;
-}
-
-/* for countdown timer */
-.timer-container {
-    display: flex;
-    flex-direction:row;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-    height: 50%;
-    position: relative;
-}
-
-.edit-buttons {
-    position: relative;
-    width: 110px;
-    height: 40px;
-    font-weight: 900;
-    background-color: #04668C;
-    border-radius: 30%;
-    color: #0388A6;
-    padding: 0%;
-    z-index: 10;
-    margin: 5px;
-}
-
-.edit-buttons:hover {
-    background-color: #0388A6;
-    color: #04668C;
-    border: #04668C solid 3px;
-}
-
-button#redirectBtn {
-    top: 50%;
-    width: 75px;
-    left: 46%;
-}
-
-.countdown {
-    position: relative;
-    background-color: transparent;
-    font-size:large;
-    text-align: center;
-}
-
-.circular-progress {
-    width: 40vw;
-    height: 40vw;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    transition: 0.5s;
-    background-color: #04668C;
-    flex-direction: column;
-}
-
-.circular-bg {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 50vw;
-    height: 50vw;
-    content: "";
-    position: relative;
-    border-radius: 50%;
-    background-color: #04668C;
 }
 
 /* Default containers */
@@ -334,33 +140,4 @@ button#redirectBtn {
 /* Settings' Fancy Checkboxes */
 input[type="range"] {
     accent-color: #F28705;
-}
-
-/* WORK & REST DOVE */
-.dove-text {
-    color: #F2A007;
-    background-color: #04668C;
-    padding: 20px;
-    padding-bottom: 10px;
-    padding-top: 10px;
-    border-radius: 50px;
-}
-
-.dove-countdown-before, .dove-countdown-after {
-    color: rgba(242, 160, 7, 0.3);
-    background-color: rgba(4, 102, 140, 0.5);
-    border-radius: 50px;
-    font-size:medium;
-    font-weight: 700;
-    padding: 5px;
-    align-self: flex-end;
-}
-.dove-countdown {
-    font-weight: 900;
-    color: #F28705;
-    background-color: rgba(4, 102, 140, 0.5);
-    border-radius: 50px;
-    font-size: larger;
-    padding: 10px;
-    align-self: flex-end;
 }
