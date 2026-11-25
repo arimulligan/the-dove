@@ -1,7 +1,7 @@
 // SETTINGS
 function loadSettings() {
-    const value = document.querySelector("#remIntervalsValue");
-    const input = document.querySelector("#remIntervals");
+    const value = document.getElementById("remIntervalsValue");
+    const input = document.getElementById("remIntervals");
     chrome.storage.sync.get('reminderInterval', (data) => {
         const interval = data.reminderInterval;
         if (interval) {
