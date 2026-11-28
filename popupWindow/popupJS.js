@@ -1,3 +1,6 @@
+document.addEventListener('DOMContentLoaded', () => {
+    loadSettings();
+});
 // SETTINGS
 function loadSettings() {
     const value = document.getElementById("remIntervalsValue");
